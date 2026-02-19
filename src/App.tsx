@@ -7,6 +7,7 @@ const Topic01IntroPage = lazy(() => import('./pages/Topic01IntroPage.tsx'));
 const Topic02AgentsPage = lazy(() => import('./pages/Topic02AgentsPage.tsx'));
 const Topic03UninformedPage = lazy(() => import('./pages/Topic03UninformedPage.tsx'));
 const Topic04InformedPage = lazy(() => import('./pages/Topic04InformedPage.tsx'));
+const StudyPage = lazy(() => import('./pages/StudyPage.tsx'));
 const StubPage = lazy(() => import('./components/StubPage.tsx'));
 
 const STUB_TOPICS = [
@@ -63,6 +64,14 @@ const router = createHashRouter([
         element: (
           <Suspense fallback={null}>
             <Topic04InformedPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'study',
+        element: (
+          <Suspense fallback={null}>
+            <StudyPage />
           </Suspense>
         ),
       },

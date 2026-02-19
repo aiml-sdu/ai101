@@ -39,6 +39,12 @@ export default function SearchMapViz() {
   const { width: cw } = useContainerSize(containerRef, { width: 700, height: 460 });
   const ch = Math.round(cw * (WORLD_H / WORLD_W));
   const { camera, fitToView } = useCanvasCamera(canvasRef);
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
+  const cwRef = useRef(cw);
+  cwRef.current = cw;
+  const chRef = useRef(ch);
+  chRef.current = ch;
 
   const [playing, setPlaying] = useState(false);
   const [canStepForward, setCanStepForward] = useState(true);
@@ -58,14 +64,17 @@ export default function SearchMapViz() {
 
   const renderState = useCallback((idx: number) => {
     const canvas = canvasRef.current;
-    if (!canvas || cw <= 0) return;
+    const _cw = cwRef.current;
+    const _ch = chRef.current;
+    const _camera = cameraRef.current;
+    if (!canvas || _cw <= 0) return;
     const states = statesRef.current;
     const state = states[Math.min(idx, states.length - 1)];
-    const ctx = setupCanvas(canvas, cw, ch);
+    const ctx = setupCanvas(canvas, _cw, _ch);
 
     ctx.save();
-    ctx.translate(camera.x, camera.y);
-    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(_camera.x, _camera.y);
+    ctx.scale(_camera.zoom, _camera.zoom);
 
     drawRomaniaMap(ctx, WORLD_W, WORLD_H, {
       current: state.current,
@@ -79,7 +88,7 @@ export default function SearchMapViz() {
     const sorted = [...state.fringe].sort((a, b) => a.cost - b.cost);
     setFringeText(formatFringe(sorted, true));
     setMessageText(state.message);
-  }, [cw, ch, camera]);
+  }, []);
 
   useEffect(() => {
     statesRef.current = collectStates(ucs('Arad', 'Bucharest', getNeighbors));
@@ -104,12 +113,12 @@ export default function SearchMapViz() {
     return () => {
       controller.destroy();
     };
-  }, [renderState]);
+  }, []);
 
   // Re-render on camera/size change
   useEffect(() => {
     renderState(stateIdxRef.current);
-  }, [camera, cw, ch, renderState]);
+  }, [camera, cw, ch]);
 
   const handlePlay = useCallback(() => controllerRef.current?.play(), []);
   const handlePause = useCallback(() => controllerRef.current?.pause(), []);

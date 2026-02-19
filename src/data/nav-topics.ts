@@ -30,6 +30,8 @@ export const NAV_TOPICS: NavTopic[] = [
       { id: 'section-04', number: '1.4', title: 'A Brief History of AI' },
       { id: 'section-05', number: '1.5', title: 'Where AI Stands Today' },
       { id: 'section-06', number: '1.6', title: 'Summary & Key Takeaways' },
+      { id: 'section-study', number: '1.7', title: 'Study & Review' },
+      { id: 'section-lab', number: 'Lab', title: 'Lab 1a: Practice' },
     ],
   },
   {
@@ -43,6 +45,8 @@ export const NAV_TOPICS: NavTopic[] = [
       { id: 'section-04', number: '2.4', title: 'Describing Agents: PEAS' },
       { id: 'section-05', number: '2.5', title: 'Types of Environments' },
       { id: 'section-06', number: '2.6', title: 'Agent Architectures' },
+      { id: 'section-study', number: '2.7', title: 'Study & Review' },
+      { id: 'section-lab', number: 'Lab', title: 'Lab 1b: Practice' },
     ],
   },
   {
@@ -57,6 +61,7 @@ export const NAV_TOPICS: NavTopic[] = [
       { id: 'section-05', number: '3.5', title: 'Depth-First Search' },
       { id: 'section-06', number: '3.6', title: 'Uniform-Cost Search' },
       { id: 'section-07', number: '3.7', title: 'Comparing Strategies' },
+      { id: 'section-study', number: '3.8', title: 'Study & Review' },
       { id: 'section-lab', number: 'Lab', title: 'Lab 2: Practice' },
     ],
   },

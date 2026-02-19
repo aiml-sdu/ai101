@@ -5,6 +5,14 @@ import QuizCard, { type QuizQuestion } from '../components/QuizCard.tsx';
 import CalloutBox from '../components/CalloutBox.tsx';
 import ConceptReveal, { type ConceptCard } from '../components/ConceptReveal.tsx';
 import TldrBox from '../components/TldrBox.tsx';
+import FlashcardDeck from '../components/FlashcardDeck.tsx';
+import ClozeText from '../components/ClozeText.tsx';
+import { TOPIC_01_FLASHCARDS, TOPIC_01_CLOZE } from '../data/study/topic-01-study.ts';
+import LabDivider from '../components/LabDivider.tsx';
+import LabProgressBar from '../components/LabProgressBar.tsx';
+import Exercise1ClassifyApproach from './visualizations/lab/Exercise1ClassifyApproach.tsx';
+import Exercise2TimelineOrder from './visualizations/lab/Exercise2TimelineOrder.tsx';
+import Exercise3TuringJudge from './visualizations/lab/Exercise3TuringJudge.tsx';
 
 const ApproachesMatrixViz = lazy(() => import('./visualizations/ApproachesMatrixViz.tsx'));
 const ChineseRoomViz = lazy(() => import('./visualizations/ChineseRoomViz.tsx'));
@@ -34,6 +42,23 @@ const CONCEPT_CARDS: ConceptCard[] = [
     brief: 'The rational agent approach',
     detail: 'Build systems that act to achieve the best expected outcome. This is the dominant approach in modern AI. An agent perceives and acts; a rational agent does so optimally. This is what this course focuses on.',
     icon: '\u{1F3AF}',
+  },
+];
+
+const QUIZ_S1: QuizQuestion[] = [
+  {
+    id: 't01-s01-q1',
+    question: 'Which of the following is an example of AI you likely interact with daily?',
+    options: ['A mechanical calculator', 'A light switch', 'A spam filter in your email', 'A wall clock'],
+    correctIndex: 2,
+    explanation: 'A spam filter uses machine learning to classify incoming emails as spam or not spam. It perceives data (email content) and makes decisions — the core pattern of AI. Calculators, light switches, and clocks are mechanical/electrical devices with no learning or decision-making.',
+  },
+  {
+    id: 't01-s01-q2',
+    question: 'What do AI systems like voice assistants, recommendation engines, and fraud detectors have in common?',
+    options: ['They all use neural networks', 'They all take in information and make decisions', 'They all require an internet connection', 'They all understand human language'],
+    correctIndex: 1,
+    explanation: 'At their core, all AI systems share the same pattern: they perceive some aspect of the world (take in information) and act on it (make decisions). The specific techniques (neural networks, rules, etc.) vary widely.',
   },
 ];
 
@@ -75,6 +100,23 @@ const QUIZ_S3: QuizQuestion[] = [
     options: ['Machines can never pass the test', "Passing the test doesn't prove understanding", 'The test is too easy for modern AI', 'Only humans can be truly intelligent'],
     correctIndex: 1,
     explanation: "Searle's Chinese Room argues that symbol manipulation (following rules) can produce correct outputs without any understanding of meaning. A system could pass the Turing Test while having zero comprehension.",
+  },
+];
+
+const QUIZ_S4: QuizQuestion[] = [
+  {
+    id: 't01-s04-q1',
+    question: 'The Dartmouth Conference of 1956 is significant because it:',
+    options: ['Invented the first neural network', 'Formally established AI as a field and coined the term', 'Demonstrated the first chatbot', 'Created the first AI winter'],
+    correctIndex: 1,
+    explanation: 'The 1956 Dartmouth Conference, organized by McCarthy, Minsky, Shannon, and Rochester, is where "artificial intelligence" was coined as a term and AI was established as a formal research discipline.',
+  },
+  {
+    id: 't01-s04-q2',
+    question: 'Which event is widely credited with launching the modern deep learning era?',
+    options: ['Deep Blue defeating Kasparov in 1997', 'AlexNet winning ImageNet in 2012', 'Watson winning Jeopardy! in 2011', 'The creation of ELIZA in 1966'],
+    correctIndex: 1,
+    explanation: 'AlexNet\'s dominant victory in the 2012 ImageNet competition demonstrated the power of deep convolutional neural networks and is widely considered the catalyst for the modern deep learning revolution.',
   },
 ];
 
@@ -146,6 +188,7 @@ export default function Topic01IntroPage() {
           journey begins. Before we can build intelligent systems, we need to wrestle with
           what &ldquo;intelligent&rdquo; even means.
         </p>
+        <QuizCard questions={QUIZ_S1} />
       </section>
 
       {/* Section 1.2 */}
@@ -283,6 +326,7 @@ export default function Topic01IntroPage() {
         <CalloutBox type="info">
           <p>AI winters happened because researchers promised more than they could deliver. The gap between solving toy problems and real-world problems was vastly underestimated.</p>
         </CalloutBox>
+        <QuizCard questions={QUIZ_S4} />
       </section>
 
       {/* Section 1.5 */}
@@ -350,6 +394,31 @@ export default function Topic01IntroPage() {
             Next up: What exactly is an agent? &rarr;
           </Link>
         </div>
+      </section>
+
+      {/* Section 1.7: Study & Review */}
+      <section id="section-study" className="scroll-mt-6">
+        <SectionHeader number="1.7" title="Study & Review" />
+        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_01_FLASHCARDS} topicId="topic-01" compact />
+          {TOPIC_01_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
+        </div>
+      </section>
+
+      {/* Lab 1a: Practice Exercises */}
+      <LabDivider label="Lab 1a: Practice" />
+      <section id="section-lab" className="scroll-mt-6">
+        <LabProgressBar
+          exercises={[
+            { id: 'lab-t01-ex1', steps: 3, label: 'Exercise 1' },
+            { id: 'lab-t01-ex2', steps: 3, label: 'Exercise 2' },
+            { id: 'lab-t01-ex3', steps: 3, label: 'Exercise 3' },
+          ]}
+        />
+        <Exercise1ClassifyApproach />
+        <Exercise2TimelineOrder />
+        <Exercise3TuringJudge />
       </section>
     </div>
   );

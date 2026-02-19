@@ -7,6 +7,14 @@ import VacuumWorldViz from './visualizations/VacuumWorldViz.tsx';
 import VacuumSimulationViz from './visualizations/VacuumSimulationViz.tsx';
 import PEASBuilder from './visualizations/PEASBuilder.tsx';
 import EnvironmentClassifier from './visualizations/EnvironmentClassifier.tsx';
+import FlashcardDeck from '../components/FlashcardDeck.tsx';
+import ClozeText from '../components/ClozeText.tsx';
+import { TOPIC_02_FLASHCARDS, TOPIC_02_CLOZE } from '../data/study/topic-02-study.ts';
+import LabDivider from '../components/LabDivider.tsx';
+import LabProgressBar from '../components/LabProgressBar.tsx';
+import Exercise1PEASChallenge from './visualizations/lab/Exercise1PEASChallenge.tsx';
+import Exercise2EnvironmentDetective from './visualizations/lab/Exercise2EnvironmentDetective.tsx';
+import Exercise3PickAgent from './visualizations/lab/Exercise3PickAgent.tsx';
 
 // ---------------------------------------------------------------------------
 // Quiz data
@@ -191,6 +199,14 @@ const QUIZ_S06: QuizQuestion[] = [
 export default function Topic02AgentsPage() {
   return (
     <div className="prose">
+      <h1>Topic 2: Intelligent Agents</h1>
+      <p className="lead">
+        An AI system doesn&rsquo;t just think&mdash;it <em>acts</em>. From a
+        thermostat to a self-driving car, every intelligent system follows the
+        same pattern: perceive the world, decide what to do, and do it. This
+        topic introduces the <strong>agent</strong> as the central concept in AI.
+      </p>
+
       <TldrBox items={[
         'Agents perceive via sensors and act via actuators; PEAS defines their task',
         'Rational agents maximize expected performance — they don\'t need to be perfect',
@@ -429,6 +445,31 @@ export default function Topic02AgentsPage() {
             Next up: Solving problems by searching &rarr;
           </Link>
         </div>
+      </section>
+
+      {/* Section 2.7: Study & Review */}
+      <section id="section-study" className="scroll-mt-6">
+        <SectionHeader number="2.7" title="Study & Review" />
+        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_02_FLASHCARDS} topicId="topic-02" compact />
+          {TOPIC_02_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
+        </div>
+      </section>
+
+      {/* Lab 1b: Practice Exercises */}
+      <LabDivider label="Lab 1b: Practice" />
+      <section id="section-lab" className="scroll-mt-6">
+        <LabProgressBar
+          exercises={[
+            { id: 'lab-t02-ex1', steps: 3, label: 'Exercise 1' },
+            { id: 'lab-t02-ex2', steps: 3, label: 'Exercise 2' },
+            { id: 'lab-t02-ex3', steps: 3, label: 'Exercise 3' },
+          ]}
+        />
+        <Exercise1PEASChallenge />
+        <Exercise2EnvironmentDetective />
+        <Exercise3PickAgent />
       </section>
     </div>
   );

@@ -41,6 +41,12 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
   const ch = Math.round(cw * (WORLD_H / WORLD_W));
 
   const { camera, fitToView } = useCanvasCamera(canvasRef);
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
+  const cwRef = useRef(cw);
+  cwRef.current = cw;
+  const chRef = useRef(ch);
+  chRef.current = ch;
   const fitDoneRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
@@ -59,15 +65,18 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
 
   const renderState = useCallback((idx: number) => {
     const canvas = canvasRef.current;
-    if (!canvas || cw <= 0) return;
+    const _cw = cwRef.current;
+    const _ch = chRef.current;
+    const _camera = cameraRef.current;
+    if (!canvas || _cw <= 0) return;
     const states = statesRef.current;
     const state = states[Math.min(idx, states.length - 1)];
-    const ctx = setupCanvas(canvas, cw, ch);
+    const ctx = setupCanvas(canvas, _cw, _ch);
     const fringeNodes = new Set(state.fringe.map((e) => e.node));
 
     ctx.save();
-    ctx.translate(camera.x, camera.y);
-    ctx.scale(camera.zoom, camera.zoom);
+    ctx.translate(_camera.x, _camera.y);
+    ctx.scale(_camera.zoom, _camera.zoom);
 
     drawTree(ctx, WORLD_W, WORLD_H, {
       current: state.current,
@@ -86,7 +95,7 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
       setFringeText(formatFringe(state.fringe));
     }
     setMessageText(state.message);
-  }, [algorithm, cw, ch, camera]);
+  }, [algorithm]);
 
   useEffect(() => {
     const searchFn = algorithm === 'bfs' ? bfs : dfs;
@@ -112,12 +121,12 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
     return () => {
       controller.destroy();
     };
-  }, [algorithm, renderState]);
+  }, [algorithm]);
 
   // Re-render on camera/size change
   useEffect(() => {
     renderState(stateIdxRef.current);
-  }, [camera, cw, ch, renderState]);
+  }, [camera, cw, ch]);
 
   const handlePlay = useCallback(() => controllerRef.current?.play(), []);
   const handlePause = useCallback(() => controllerRef.current?.pause(), []);

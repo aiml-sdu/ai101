@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Lock } from 'lucide-react';
+import { ChevronRight, Lock, BookOpen } from 'lucide-react';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import {
@@ -87,17 +87,30 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
 
               if (!hasSections) {
                 return (
-                  <SidebarMenuItem key={topic.id}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => handleTopicClick(topic.id, false)}
-                    >
-                      {topic.number > 0 && (
-                        <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
-                      )}
-                      <span>{topic.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <React.Fragment key={topic.id}>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        onClick={() => handleTopicClick(topic.id, false)}
+                      >
+                        {topic.number > 0 && (
+                          <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
+                        )}
+                        <span>{topic.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    {topic.id === 'welcome' && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          isActive={activeTopic === 'study'}
+                          onClick={() => navigate('/study')}
+                        >
+                          <BookOpen className="size-4" />
+                          <span>Study Hub</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                  </React.Fragment>
                 );
               }
 

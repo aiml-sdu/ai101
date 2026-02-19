@@ -8,7 +8,8 @@ import TldrBox from '../components/TldrBox.tsx';
 import FlashcardDeck from '../components/FlashcardDeck.tsx';
 import ClozeText from '../components/ClozeText.tsx';
 import { TOPIC_01_FLASHCARDS, TOPIC_01_CLOZE } from '../data/study/topic-01-study.ts';
-import LabDivider from '../components/LabDivider.tsx';
+import TierDivider from '../components/TierDivider.tsx';
+import HookQuestion from '../components/HookQuestion.tsx';
 import LabProgressBar from '../components/LabProgressBar.tsx';
 import Exercise1ClassifyApproach from './visualizations/lab/Exercise1ClassifyApproach.tsx';
 import Exercise2TimelineOrder from './visualizations/lab/Exercise2TimelineOrder.tsx';
@@ -17,6 +18,7 @@ import Exercise3TuringJudge from './visualizations/lab/Exercise3TuringJudge.tsx'
 const ApproachesMatrixViz = lazy(() => import('./visualizations/ApproachesMatrixViz.tsx'));
 const ChineseRoomViz = lazy(() => import('./visualizations/ChineseRoomViz.tsx'));
 const AITimelineViz = lazy(() => import('./visualizations/AITimelineViz.tsx'));
+const SpotTheIntelligenceGame = lazy(() => import('./visualizations/SpotTheIntelligenceGame.tsx'));
 
 const CONCEPT_CARDS: ConceptCard[] = [
   {
@@ -148,6 +150,11 @@ export default function Topic01IntroPage() {
         stage for everything that follows.
       </p>
 
+      <HookQuestion
+        question="What makes something intelligent — and could a machine ever truly be?"
+        subtext="Before we can build intelligent systems, we need to wrestle with what 'intelligent' even means."
+      />
+
       <TldrBox items={[
         'Four approaches to AI: thinking/acting humanly vs. thinking/acting rationally',
         'The Turing Test measures human-like behavior; the rational agent approach optimizes outcomes',
@@ -155,9 +162,11 @@ export default function Topic01IntroPage() {
         'Modern AI focuses on building rational agents that perceive, reason, and act optimally',
       ]} />
 
-      {/* Section 1.1 */}
-      <section id="section-01" className="scroll-mt-6">
-        <SectionHeader number="1.1" title="AI Is Already Everywhere" />
+      {/* ── First Principles ── */}
+      <TierDivider tier="first-principles" />
+      <section id="section-first-principles" className="scroll-mt-6">
+        <SectionHeader number="1.1" title="First Principles" />
+
         <p>
           You unlocked your phone with your face this morning. Your email sorted itself.
           A chatbot helped you track a package. You&rsquo;re surrounded by AI and barely
@@ -183,17 +192,12 @@ export default function Topic01IntroPage() {
             that actually mean? Turns out, even researchers can&rsquo;t fully agree.
           </p>
         </blockquote>
-        <p>
-          That tension&mdash;between intuition and rigorous definition&mdash;is where our
-          journey begins. Before we can build intelligent systems, we need to wrestle with
-          what &ldquo;intelligent&rdquo; even means.
-        </p>
-        <QuizCard questions={QUIZ_S1} />
-      </section>
 
-      {/* Section 1.2 */}
-      <section id="section-02" className="scroll-mt-6">
-        <SectionHeader number="1.2" title='What Does "Intelligent" Mean?' />
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <SpotTheIntelligenceGame />
+        </Suspense>
+
+        <h3>The Four Approaches to AI</h3>
         <p>
           A calculator does math faster than you. Is it intelligent? A dog learns tricks.
           Is <em>it</em> intelligent? Where&rsquo;s the line?
@@ -210,7 +214,6 @@ export default function Topic01IntroPage() {
             matrix that has organized the entire field since the beginning.
           </p>
         </blockquote>
-        <h3>The Four Approaches to AI</h3>
         <p>
           Russell &amp; Norvig&rsquo;s classic textbook frames AI along two dimensions:
           <strong> thinking vs. acting</strong> and <strong>humanly vs. rationally</strong>.
@@ -230,19 +233,21 @@ export default function Topic01IntroPage() {
         </Suspense>
         <p>Click each card below to explore the four approaches in detail:</p>
         <ConceptReveal cards={CONCEPT_CARDS} />
-        <QuizCard questions={QUIZ_S2} />
       </section>
 
-      {/* Section 1.3 */}
-      <section id="section-03" className="scroll-mt-6">
-        <SectionHeader number="1.3" title="The Turing Test" />
+      {/* ── Feynman / Intuitive Explanation ── */}
+      <TierDivider tier="feynman" />
+      <section id="section-feynman" className="scroll-mt-6">
+        <SectionHeader number="1.2" title="Intuitive Explanation" />
+
+        <h3>The Turing Test</h3>
         <p>
           Have you ever talked to a chatbot and wasn&rsquo;t sure if it was human? That
           uncanny moment&mdash;hovering between <em>&ldquo;this is clearly a machine&rdquo;</em>
           {' '}and <em>&ldquo;wait, maybe not&rdquo;</em>&mdash;is exactly what Alan Turing was
           thinking about in 1950.
         </p>
-        <h3>The Imitation Game</h3>
+        <h4>The Imitation Game</h4>
         <p>
           Turing proposed a practical test: place a human evaluator in one room and a
           machine in another. They communicate only through text. If the evaluator
@@ -255,19 +260,11 @@ export default function Topic01IntroPage() {
           <li><strong>Automated reasoning</strong>&mdash;to draw conclusions from its knowledge</li>
           <li><strong>Machine learning</strong>&mdash;to adapt to new situations and detect patterns</li>
         </ul>
-        <h3>The Total Turing Test</h3>
-        <p>
-          The standard test only involves text conversation. The <strong>Total Turing
-          Test</strong> raises the bar by adding:
-        </p>
-        <ul>
-          <li><strong>Computer vision</strong>&mdash;to perceive objects in the physical world</li>
-          <li><strong>Robotics</strong>&mdash;to manipulate objects and navigate the environment</li>
-        </ul>
         <CalloutBox type="key-idea">
           <p>The Turing Test is about behavior, not internal mechanisms. A machine doesn't need to think like a human &mdash; it just needs to act indistinguishably from one.</p>
         </CalloutBox>
-        <h3>The Chinese Room</h3>
+
+        <h4>The Chinese Room</h4>
         <p>
           Not everyone buys the Turing Test as proof of intelligence. Philosopher
           <strong> John Searle</strong> proposed a famous thought experiment: imagine a
@@ -285,19 +282,31 @@ export default function Topic01IntroPage() {
         <Suspense fallback={null}>
           <ChineseRoomViz />
         </Suspense>
-        <QuizCard questions={QUIZ_S3} />
       </section>
 
-      {/* Section 1.4 */}
-      <section id="section-04" className="scroll-mt-6">
-        <SectionHeader number="1.4" title="A Brief History of AI" />
+      {/* ── Advanced / Technical ── */}
+      <TierDivider tier="advanced" />
+      <section id="section-advanced" className="scroll-mt-6">
+        <SectionHeader number="1.3" title="Advanced / Technical" />
+
+        <h3>The Total Turing Test</h3>
+        <p>
+          The standard test only involves text conversation. The <strong>Total Turing
+          Test</strong> raises the bar by adding:
+        </p>
+        <ul>
+          <li><strong>Computer vision</strong>&mdash;to perceive objects in the physical world</li>
+          <li><strong>Robotics</strong>&mdash;to manipulate objects and navigate the environment</li>
+        </ul>
+
+        <h3>A Brief History of AI</h3>
         <p>
           AI isn&rsquo;t new&mdash;researchers have been chasing this dream since the 1950s.
           And it hasn&rsquo;t been a straight line. The field swings between wild optimism
           and crushing disappointment (&ldquo;AI winters&rdquo;). Understanding the history
           explains why.
         </p>
-        <h3>Key Milestones</h3>
+        <h4>Key Milestones</h4>
         <Suspense fallback={null}>
           <AITimelineViz />
         </Suspense>
@@ -326,19 +335,15 @@ export default function Topic01IntroPage() {
         <CalloutBox type="info">
           <p>AI winters happened because researchers promised more than they could deliver. The gap between solving toy problems and real-world problems was vastly underestimated.</p>
         </CalloutBox>
-        <QuizCard questions={QUIZ_S4} />
-      </section>
 
-      {/* Section 1.5 */}
-      <section id="section-05" className="scroll-mt-6">
-        <SectionHeader number="1.5" title="Where AI Stands Today" />
+        <h3>Where AI Stands Today</h3>
         <p>
           Today&rsquo;s AI systems are astonishingly capable in specific domains. They can
           diagnose diseases from medical scans, drive cars on highways, translate between
           hundreds of languages, generate photorealistic images from text descriptions, and
           write code that passes professional-level interviews.
         </p>
-        <h3>What AI Can Do Now</h3>
+        <h4>What AI Can Do Now</h4>
         <ul>
           <li><strong>Image recognition</strong> that surpasses human accuracy on specific benchmarks</li>
           <li><strong>Natural language understanding</strong> that powers conversational assistants and translation</li>
@@ -346,7 +351,7 @@ export default function Topic01IntroPage() {
           <li><strong>Scientific discovery</strong>&mdash;AlphaFold predicts protein structures, accelerating biology</li>
           <li><strong>Creative generation</strong>&mdash;text, images, music, and video from natural language prompts</li>
         </ul>
-        <h3>What Remains Hard</h3>
+        <h4>What Remains Hard</h4>
         <ul>
           <li><strong>Common sense reasoning</strong>&mdash;understanding that water is wet and fire is hot</li>
           <li><strong>Transfer learning</strong>&mdash;applying knowledge from one domain to a completely different one</li>
@@ -357,28 +362,24 @@ export default function Topic01IntroPage() {
         <CalloutBox type="key-idea">
           <p>Today's AI is narrow &mdash; it excels at specific tasks but lacks the general intelligence humans have. AGI (Artificial General Intelligence) remains an open challenge.</p>
         </CalloutBox>
-        <QuizCard questions={QUIZ_S5} />
-      </section>
 
-      {/* Section 1.6 */}
-      <section id="section-06" className="scroll-mt-6">
-        <SectionHeader number="1.6" title="Summary & Key Takeaways" />
+        <h3>Summary &amp; Key Takeaways</h3>
         <p>Let&rsquo;s recap what we&rsquo;ve covered in this introduction:</p>
-        <h3>The Four Approaches to AI</h3>
+        <h4>The Four Approaches to AI</h4>
         <p>
           AI can be framed along two axes&mdash;<strong>thinking vs. acting</strong> and
           <strong> humanly vs. rationally</strong>. This gives us four approaches: cognitive
           modeling (thinking humanly), logic-based reasoning (thinking rationally), the
           Turing Test (acting humanly), and rational agents (acting rationally).
         </p>
-        <h3>The Turing Test</h3>
+        <h4>The Turing Test</h4>
         <p>
           Turing proposed a behavioral test for intelligence: if a machine can fool a human
           evaluator in conversation, it passes. The test requires NLP, knowledge
           representation, reasoning, and learning. The Chinese Room argument challenges
           whether passing implies true understanding.
         </p>
-        <h3>The Rational Agent Approach</h3>
+        <h4>The Rational Agent Approach</h4>
         <p>
           This course follows the <strong>rational agent</strong> paradigm. An agent
           perceives its environment through sensors and acts through actuators. A
@@ -390,24 +391,36 @@ export default function Topic01IntroPage() {
           <p>This course follows the rational agent approach. An agent perceives its environment and acts to maximize its performance measure. Everything we study &mdash; from search algorithms to machine learning &mdash; serves this goal.</p>
         </CalloutBox>
         <div className="not-prose mt-6">
-          <Link to="/topic-02" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors no-underline">
+          <Link to="/topic-02" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors no-underline">
             Next up: What exactly is an agent? &rarr;
           </Link>
         </div>
       </section>
 
-      {/* Section 1.7: Study & Review */}
-      <section id="section-study" className="scroll-mt-6">
-        <SectionHeader number="1.7" title="Study & Review" />
-        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+      {/* ── Check Your Understanding (MCQ) ── */}
+      <TierDivider tier="quiz" />
+      <section id="section-quiz" className="scroll-mt-6">
+        <SectionHeader number="1.4" title="Check Your Understanding" />
+        <h3>AI in Daily Life &amp; Approaches</h3>
+        <QuizCard questions={[...QUIZ_S1, ...QUIZ_S2]} />
+        <h3>The Turing Test</h3>
+        <QuizCard questions={QUIZ_S3} />
+        <h3>History &amp; Current State</h3>
+        <QuizCard questions={[...QUIZ_S4, ...QUIZ_S5]} />
+      </section>
+
+      {/* ── Fill in the Blanks (Cloze) ── */}
+      <TierDivider tier="cloze" />
+      <section id="section-cloze" className="scroll-mt-6">
+        <SectionHeader number="1.5" title="Fill in the Blanks" />
+        <p>Test your recall by filling in the missing terms.</p>
         <div className="not-prose">
-          <FlashcardDeck cards={TOPIC_01_FLASHCARDS} topicId="topic-01" compact />
           {TOPIC_01_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
         </div>
       </section>
 
-      {/* Lab 1a: Practice Exercises */}
-      <LabDivider label="Lab 1a: Practice" />
+      {/* ── Lab Exercises ── */}
+      <TierDivider tier="lab" label="Lab 1a: Practice" />
       <section id="section-lab" className="scroll-mt-6">
         <LabProgressBar
           exercises={[
@@ -419,6 +432,16 @@ export default function Topic01IntroPage() {
         <Exercise1ClassifyApproach />
         <Exercise2TimelineOrder />
         <Exercise3TuringJudge />
+      </section>
+
+      {/* ── Extra Exercises ── */}
+      <TierDivider tier="extra" />
+      <section id="section-extra" className="scroll-mt-6">
+        <SectionHeader number="1.6" title="Extra Exercises" />
+        <p>Review key concepts with flashcards for spaced repetition.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_01_FLASHCARDS} topicId="topic-01" compact />
+        </div>
       </section>
     </div>
   );

@@ -4,7 +4,7 @@ import { useContainerSize } from '../../hooks/useContainerSize.ts';
 import { useCanvasCamera } from '../../hooks/useCanvasCamera.ts';
 import { AnimationController } from '../../visualizations/animation-loop.ts';
 import { bfs, dfs, type SearchState, type FringeEntry } from '../../lib/search.ts';
-import { drawTree, getTreeNeighbors, TREE_GOAL } from './tree-drawing.ts';
+import { drawTree, getTreeNeighbors, TREE_GOAL, COL_UNSEEN, COL_FRINGE, COL_CURRENT, COL_EXPLORED, COL_GOAL, COL_PATH } from './tree-drawing.ts';
 import AlgoControls from '../../components/AlgoControls.tsx';
 
 const WORLD_W = 700;
@@ -40,15 +40,13 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
   const cw = Math.min(containerW - 16, WORLD_W);
   const ch = Math.round(cw * (WORLD_H / WORLD_W));
 
-  const { camera, fitToView } = useCanvasCamera(canvasRef);
+  const { camera, fitToView } = useCanvasCamera(canvasRef, { panDisabled: true, zoomDisabled: true });
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
   const cwRef = useRef(cw);
   cwRef.current = cw;
   const chRef = useRef(ch);
   chRef.current = ch;
-  const fitDoneRef = useRef(false);
-
   const [playing, setPlaying] = useState(false);
   const [canStepForward, setCanStepForward] = useState(true);
   const [canStepBack, setCanStepBack] = useState(false);
@@ -57,9 +55,8 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
   const [messageText, setMessageText] = useState('');
 
   useEffect(() => {
-    if (cw > 0 && !fitDoneRef.current) {
+    if (cw > 0) {
       fitToView(cw, ch, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
-      fitDoneRef.current = true;
     }
   }, [cw, ch, fitToView]);
 
@@ -150,7 +147,22 @@ export default function SearchTreeViz({ algorithm, label, fringeLabel }: SearchT
   return (
     <div className="rounded-lg border bg-card p-4 my-6 overflow-hidden" ref={containerRef}>
       <div className="text-sm font-medium text-muted-foreground mb-3">{label}</div>
-      <canvas ref={canvasRef} style={{ cursor: 'grab' }} />
+      <canvas ref={canvasRef} style={{ cursor: 'default' }} />
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-muted-foreground">
+        {[
+          { color: COL_UNSEEN, label: 'Unseen' },
+          { color: COL_FRINGE, label: 'Fringe' },
+          { color: COL_CURRENT, label: 'Current' },
+          { color: COL_EXPLORED, label: 'Explored' },
+          { color: COL_GOAL, label: 'Goal' },
+          { color: COL_PATH, label: 'Path' },
+        ].map(({ color, label }) => (
+          <span key={label} className="inline-flex items-center gap-1">
+            <span className="inline-block size-2.5 rounded-full" style={{ backgroundColor: color }} />
+            {label}
+          </span>
+        ))}
+      </div>
       <AlgoControls
         playing={playing}
         canStepForward={canStepForward}

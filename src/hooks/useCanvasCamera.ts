@@ -76,10 +76,11 @@ export function useCanvasCamera(
     isPanningRef.current = false;
   }, []);
 
-  // Scroll zoom
+  // Scroll zoom — requires Ctrl/Meta so page scroll isn't hijacked
   const handleWheel = useCallback((e: WheelEvent) => {
     const o = optsRef.current;
     if (o.zoomDisabled) return;
+    if (!e.ctrlKey && !e.metaKey) return; // let page scroll through
     e.preventDefault();
 
     const canvas = canvasRef.current;

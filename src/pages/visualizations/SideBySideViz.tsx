@@ -4,7 +4,7 @@ import { useContainerSize } from '../../hooks/useContainerSize.ts';
 import { useCanvasCamera } from '../../hooks/useCanvasCamera.ts';
 import { AnimationController } from '../../visualizations/animation-loop.ts';
 import { bfs, dfs, type SearchState, type FringeEntry } from '../../lib/search.ts';
-import { drawTree, getTreeNeighbors, TREE_GOAL } from './tree-drawing.ts';
+import { drawTree, getTreeNeighbors, TREE_GOAL, COL_UNSEEN, COL_FRINGE, COL_CURRENT, COL_EXPLORED, COL_GOAL, COL_PATH } from './tree-drawing.ts';
 import AlgoControls from '../../components/AlgoControls.tsx';
 
 const WORLD_W = 700;
@@ -42,8 +42,8 @@ export default function SideBySideViz() {
   const bfsCh = Math.round(bfsCw * (WORLD_H / WORLD_W));
   const dfsCh = Math.round(dfsCw * (WORLD_H / WORLD_W));
 
-  const bfsCamera = useCanvasCamera(bfsCanvasRef);
-  const dfsCamera = useCanvasCamera(dfsCanvasRef);
+  const bfsCamera = useCanvasCamera(bfsCanvasRef, { panDisabled: true, zoomDisabled: true });
+  const dfsCamera = useCanvasCamera(dfsCanvasRef, { panDisabled: true, zoomDisabled: true });
 
   const bfsCameraRef = useRef(bfsCamera.camera);
   bfsCameraRef.current = bfsCamera.camera;
@@ -58,8 +58,6 @@ export default function SideBySideViz() {
   const dfsChRef = useRef(dfsCh);
   dfsChRef.current = dfsCh;
 
-  const fitDoneRef = useRef(false);
-
   const [playing, setPlaying] = useState(false);
   const [canStepForward, setCanStepForward] = useState(true);
   const [canStepBack, setCanStepBack] = useState(false);
@@ -68,12 +66,11 @@ export default function SideBySideViz() {
   const [dfsFringeText, setDfsFringeText] = useState('');
 
   useEffect(() => {
-    if (bfsCw > 0 && dfsCw > 0 && !fitDoneRef.current) {
+    if (bfsCw > 0 && dfsCw > 0) {
       bfsCamera.fitToView(bfsCw, bfsCh, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
       dfsCamera.fitToView(dfsCw, dfsCh, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
-      fitDoneRef.current = true;
     }
-  }, [bfsCw, bfsCh, dfsCw, dfsCh, bfsCamera, dfsCamera]);
+  }, [bfsCw, bfsCh, dfsCw, dfsCh, bfsCamera.fitToView, dfsCamera.fitToView]);
 
   const renderState = useCallback((idx: number) => {
     // BFS side
@@ -187,7 +184,7 @@ export default function SideBySideViz() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
         <div className="rounded-lg border bg-card p-4 overflow-hidden" ref={bfsContainerRef}>
           <div className="text-sm font-medium text-muted-foreground mb-3">BFS</div>
-          <canvas ref={bfsCanvasRef} style={{ cursor: 'grab' }} />
+          <canvas ref={bfsCanvasRef} style={{ cursor: 'default' }} />
           <div className="mt-3 text-sm font-mono leading-relaxed min-h-6">
             <strong>Queue:</strong>{' '}
             {bfsFringeText || <em className="text-muted-foreground">empty</em>}
@@ -195,12 +192,27 @@ export default function SideBySideViz() {
         </div>
         <div className="rounded-lg border bg-card p-4 overflow-hidden" ref={dfsContainerRef}>
           <div className="text-sm font-medium text-muted-foreground mb-3">DFS</div>
-          <canvas ref={dfsCanvasRef} style={{ cursor: 'grab' }} />
+          <canvas ref={dfsCanvasRef} style={{ cursor: 'default' }} />
           <div className="mt-3 text-sm font-mono leading-relaxed min-h-6">
             <strong>Stack:</strong>{' '}
             {dfsFringeText || <em className="text-muted-foreground">empty</em>}
           </div>
         </div>
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 mb-2 text-[10px] text-muted-foreground justify-center">
+        {[
+          { color: COL_UNSEEN, label: 'Unseen' },
+          { color: COL_FRINGE, label: 'Fringe' },
+          { color: COL_CURRENT, label: 'Current' },
+          { color: COL_EXPLORED, label: 'Explored' },
+          { color: COL_GOAL, label: 'Goal' },
+          { color: COL_PATH, label: 'Path' },
+        ].map(({ color, label }) => (
+          <span key={label} className="inline-flex items-center gap-1">
+            <span className="inline-block size-2.5 rounded-full" style={{ backgroundColor: color }} />
+            {label}
+          </span>
+        ))}
       </div>
       <AlgoControls
         playing={playing}

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { COL_UNSEEN, COL_FRINGE, COL_EXPLORED, COL_GOAL } from './tree-drawing.ts';
+import { COL_UNSEEN, COL_FRINGE, COL_EXPLORED, COL_GOAL, contrastText } from './tree-drawing.ts';
 
 export type TreeNodeState = 'unseen' | 'fringe' | 'explored' | 'goal';
 
@@ -26,11 +26,12 @@ function TreeNodeComponent({ data }: NodeProps) {
     <>
       <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 !w-0 !h-0" />
       <div
-        className="flex items-center justify-center rounded-full text-white text-sm font-bold select-none"
+        className="flex items-center justify-center rounded-full text-sm font-bold select-none"
         style={{
           width: 48,
           height: 48,
           backgroundColor: STATE_COLORS[state],
+          color: contrastText(STATE_COLORS[state]),
           cursor: clickable ? 'pointer' : 'default',
           outline: clickable ? '2px dashed var(--foreground)' : 'none',
           outlineOffset: '4px',

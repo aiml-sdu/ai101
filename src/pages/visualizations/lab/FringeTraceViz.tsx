@@ -18,6 +18,7 @@ import {
   getDFSOrder,
   getBFSOrder,
 } from './exercise1-data';
+import { contrastText } from '../tree-drawing';
 
 // ---------- constants ----------
 
@@ -73,7 +74,7 @@ function LabTreeNode({ data }: NodeProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#fff',
+          color: contrastText(STATE_BG[state]),
           fontSize: 14,
           fontWeight: 700,
           userSelect: 'none',

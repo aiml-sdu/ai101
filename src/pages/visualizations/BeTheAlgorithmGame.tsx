@@ -11,6 +11,7 @@ import {
   COL_FRINGE,
   COL_EXPLORED,
   COL_GOAL,
+  contrastText,
 } from './tree-drawing.ts';
 
 type Algorithm = 'bfs' | 'dfs';
@@ -76,10 +77,10 @@ const WRONG_HINTS: Record<Algorithm, string> = {
   dfs: 'DFS uses a stack (LIFO) — it expands the most recently added node!',
 };
 
-// SVG layout: scale tree-drawing coords to fit a 360x180 viewBox
-const SVG_W = 380;
-const SVG_H = 200;
-const NODE_R = 20;
+// SVG layout: scale tree-drawing coords to fit viewBox
+const SVG_W = 600;
+const SVG_H = 300;
+const NODE_R = 26;
 const SCALE_X = SVG_W / 700;
 const SCALE_Y = SVG_H / 280;
 const OFFSET_Y = 20;
@@ -223,7 +224,7 @@ export default function BeTheAlgorithmGame() {
       {/* SVG Tree */}
       <svg
         viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-        className="mx-auto mb-3 w-full max-w-md"
+        className="mx-auto mb-3 w-full max-w-2xl"
         role="img"
         aria-label={`${algo.toUpperCase()} game tree`}
       >
@@ -301,7 +302,7 @@ export default function BeTheAlgorithmGame() {
                 y={cy}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="white"
+                fill={contrastText(isWrong ? '#ef4444' : fill)}
                 fontSize={12}
                 fontWeight="bold"
                 pointerEvents="none"

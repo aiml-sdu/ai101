@@ -8,6 +8,18 @@ export const COL_EXPLORED = '#22c55e';
 export const COL_GOAL = '#3b82f6';
 export const COL_PATH = '#8b5cf6';
 
+/** Return black or white text depending on background luminance. */
+export function contrastText(bg: string): string {
+  // Parse hex color
+  const hex = bg.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  // Relative luminance (sRGB)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? '#000' : '#fff';
+}
+
 // ---- Tree data ----
 
 export interface TreeNode {
@@ -87,7 +99,7 @@ export function drawTree(
 
     const isGoal = node.id === TREE_GOAL;
     drawText(ctx, node.id + (isGoal ? ' (G)' : ''), node.x, node.y, {
-      color: '#fff',
+      color: contrastText(fill),
       font: 'bold 14px var(--font-sans, system-ui, sans-serif)',
     });
   }

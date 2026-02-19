@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import SectionHeader from '../components/SectionHeader.tsx';
 import QuizCard, { type QuizQuestion } from '../components/QuizCard.tsx';
 import CalloutBox from '../components/CalloutBox.tsx';
@@ -15,11 +16,14 @@ import BeTheAlgorithmGame from './visualizations/BeTheAlgorithmGame.tsx';
 import FlashcardDeck from '../components/FlashcardDeck.tsx';
 import ClozeText from '../components/ClozeText.tsx';
 import { TOPIC_03_FLASHCARDS, TOPIC_03_CLOZE } from '../data/study/topic-03-study.ts';
-import LabDivider from '../components/LabDivider.tsx';
+import TierDivider from '../components/TierDivider.tsx';
+import HookQuestion from '../components/HookQuestion.tsx';
 import LabProgressBar from '../components/LabProgressBar.tsx';
 import Exercise1GraphTraversal from './visualizations/lab/Exercise1GraphTraversal.tsx';
 import Exercise2VacuumWorld from './visualizations/lab/Exercise2VacuumWorld.tsx';
 import Exercise3RiverCrossing from './visualizations/lab/Exercise3RiverCrossing.tsx';
+
+const FringeFrenzyGame = lazy(() => import('./visualizations/FringeFrenzyGame.tsx'));
 
 // ---- Quiz data ----
 
@@ -254,6 +258,11 @@ export default function Topic03UninformedPage() {
         everything from GPS navigation to game-playing programs.
       </p>
 
+      <HookQuestion
+        question="Dozens of routes from Arad to Bucharest — how do you find the best one without already knowing the answer?"
+        subtext="Search algorithms explore possibilities systematically so you don't have to."
+      />
+
       <TldrBox items={[
         'Search problems have states, actions, a transition model, and a goal test',
         'BFS finds the shallowest goal; DFS uses less memory but may not find the shortest path',
@@ -261,28 +270,12 @@ export default function Topic03UninformedPage() {
         'Iterative Deepening combines BFS optimality with DFS memory efficiency',
       ]} />
 
-      {/* Section 3.1: Planning a Road Trip */}
-      <section id="section-01" className="scroll-mt-6">
-        <SectionHeader number="3.1" title="Planning a Road Trip" />
-        <p>
-          Imagine you are in <strong>Arad</strong>, Romania, and you need to drive to
-          <strong> Bucharest</strong>. You have a map showing cities connected by roads,
-          each with a distance. How do you find the best route? This seemingly simple
-          question is the foundation of <em>search</em> in AI &mdash; and the algorithms
-          we develop here power everything from GPS navigation to game-playing programs.
-        </p>
-        <p>
-          Below is the Romania road map from Russell &amp; Norvig&rsquo;s textbook. Each circle
-          is a city; each line is a road with its distance in kilometers. <strong>Arad</strong>
-          {' '}is highlighted in green (start) and <strong>Bucharest</strong> in red (goal).
-          Hover over any city to see its straight-line distance to Bucharest.
-        </p>
-        <RomaniaMapViz />
-      </section>
+      {/* ── First Principles ── */}
+      <TierDivider tier="first-principles" />
+      <section id="section-first-principles" className="scroll-mt-6">
+        <SectionHeader number="3.1" title="First Principles" />
 
-      {/* Section 3.2: Framing Problems as Search */}
-      <section id="section-02" className="scroll-mt-6">
-        <SectionHeader number="3.2" title="Framing Problems as Search" />
+        <h3>Framing Problems as Search</h3>
         <p>
           Before we can solve a problem, we need a precise way to describe it. In AI, we
           frame problems as <strong>search problems</strong> with four components:
@@ -303,12 +296,8 @@ export default function Topic03UninformedPage() {
           This formalization is powerful: once you describe <em>any</em> problem in these terms,
           you can apply the same search algorithms to solve it.
         </p>
-        <QuizCard questions={QUIZ_S2} />
-      </section>
 
-      {/* Section 3.3: The Tree Search Algorithm */}
-      <section id="section-03" className="scroll-mt-6">
-        <SectionHeader number="3.3" title="The Tree Search Algorithm" />
+        <h3>The Tree Search Algorithm</h3>
         <p>
           At the heart of every search algorithm is the <strong>fringe</strong> (also called the
           <strong> frontier</strong>): a collection of nodes waiting to be expanded. We start with
@@ -330,6 +319,74 @@ export default function Topic03UninformedPage() {
       return node
     fringe.INSERT-ALL(EXPAND(node, problem))`}
         </AlgorithmBox>
+      </section>
+
+      {/* ── Feynman / Intuitive Explanation ── */}
+      <TierDivider tier="feynman" />
+      <section id="section-feynman" className="scroll-mt-6">
+        <SectionHeader number="3.2" title="Intuitive Explanation" />
+
+        <h3>Planning a Road Trip</h3>
+        <p>
+          Imagine you are in <strong>Arad</strong>, Romania, and you need to drive to
+          <strong> Bucharest</strong>. You have a map showing cities connected by roads,
+          each with a distance. How do you find the best route? This seemingly simple
+          question is the foundation of <em>search</em> in AI &mdash; and the algorithms
+          we develop here power everything from GPS navigation to game-playing programs.
+        </p>
+        <p>
+          Below is the Romania road map from Russell &amp; Norvig&rsquo;s textbook. Each circle
+          is a city; each line is a road with its distance in kilometers. <strong>Arad</strong>
+          {' '}is highlighted in green (start) and <strong>Bucharest</strong> in red (goal).
+          Hover over any city to see its straight-line distance to Bucharest.
+        </p>
+        <RomaniaMapViz />
+
+        <h3>Breadth-First Search</h3>
+        <p>
+          Breadth-First Search (BFS) explores the tree level by level. It uses a <strong>FIFO
+          queue</strong>: new nodes go to the back of the fringe, so shallower nodes are always
+          expanded before deeper ones. Think of it as exploring in concentric waves outward from
+          the start.
+        </p>
+        <SearchTreeViz algorithm="bfs" label="BFS on Tree (Goal: G)" fringeLabel="Fringe (Queue)" />
+
+        <h3>Depth-First Search</h3>
+        <p>
+          Depth-First Search (DFS) dives as deep as possible before backtracking. It uses a
+          <strong> LIFO stack</strong>: the most recently generated node is expanded first. This
+          means DFS races down the leftmost branch, only backtracking when it hits a dead end.
+        </p>
+        <SearchTreeViz algorithm="dfs" label="DFS on Tree (Goal: G)" fringeLabel="Fringe (Stack, top first)" />
+
+        <h4>BFS vs DFS: Side by Side</h4>
+        <p>
+          Below, both algorithms explore the <em>same tree</em> simultaneously. Step through
+          to see how BFS (left) expands level-by-level while DFS (right) dives deep first.
+        </p>
+        <SideBySideViz />
+
+        <h4>Iterative Deepening Search</h4>
+        <p>
+          <strong>Iterative Deepening Search (IDS)</strong> gets the best of both worlds. It
+          runs DFS with a depth limit of 1, then 2, then 3, and so on. Each iteration uses
+          <M>{"O(bd)"}</M> memory (like DFS), but by increasing the limit it guarantees finding the
+          shallowest solution (like BFS). The overhead of re-expanding shallow nodes is small
+          because most nodes live at the deepest level of the tree.
+        </p>
+        <CalloutBox type="tip">
+          <p>DFS uses much less memory than BFS &mdash; <M>{"O(bm)"}</M> vs <M>{"O(b^d)"}</M>.
+            But it can get stuck in infinite branches and may miss shallower solutions.
+            IDS solves this by combining the best of both.</p>
+        </CalloutBox>
+      </section>
+
+      {/* ── Advanced / Technical ── */}
+      <TierDivider tier="advanced" />
+      <section id="section-advanced" className="scroll-mt-6">
+        <SectionHeader number="3.3" title="Advanced / Technical" />
+
+        <h3>Complete the Tree Search Algorithm</h3>
         <ClozeCodeExercise
           title="Complete the Tree Search Algorithm"
           lines={CLOZE_TREE_SEARCH}
@@ -340,19 +397,13 @@ export default function Topic03UninformedPage() {
           <strong> G</strong> (marked in blue when found).
         </p>
         <InteractiveTreeViz />
-        <QuizCard questions={QUIZ_S3} />
-      </section>
 
-      {/* Section 3.4: Breadth-First Search */}
-      <section id="section-04" className="scroll-mt-6">
-        <SectionHeader number="3.4" title="Breadth-First Search" />
-        <p>
-          Breadth-First Search (BFS) explores the tree level by level. It uses a <strong>FIFO
-          queue</strong>: new nodes go to the back of the fringe, so shallower nodes are always
-          expanded before deeper ones. Think of it as exploring in concentric waves outward from
-          the start.
-        </p>
-        <SearchTreeViz algorithm="bfs" label="BFS on Tree (Goal: G)" fringeLabel="Fringe (Queue)" />
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <FringeFrenzyGame />
+        </Suspense>
+
+        <h3>Algorithm Properties</h3>
+        <h4>Breadth-First Search</h4>
         <PropertiesTable data={BFS_PROPS} />
         <p>
           <em>* Optimal only when all step costs are equal.</em>
@@ -362,46 +413,11 @@ export default function Topic03UninformedPage() {
             current depth, which grows exponentially. For branching factor <M>{"b"}</M> and solution depth <M>{"d"}</M>,
             BFS needs <M>{"O(b^d)"}</M> memory.</p>
         </CalloutBox>
-        <QuizCard questions={QUIZ_S4} />
-      </section>
 
-      {/* Section 3.5: Depth-First Search */}
-      <section id="section-05" className="scroll-mt-6">
-        <SectionHeader number="3.5" title="Depth-First Search" />
-        <p>
-          Depth-First Search (DFS) dives as deep as possible before backtracking. It uses a
-          <strong> LIFO stack</strong>: the most recently generated node is expanded first. This
-          means DFS races down the leftmost branch, only backtracking when it hits a dead end.
-        </p>
-        <SearchTreeViz algorithm="dfs" label="DFS on Tree (Goal: G)" fringeLabel="Fringe (Stack, top first)" />
-
-        <h3>BFS vs DFS: Side by Side</h3>
-        <p>
-          Below, both algorithms explore the <em>same tree</em> simultaneously. Step through
-          to see how BFS (left) expands level-by-level while DFS (right) dives deep first.
-        </p>
-        <SideBySideViz />
-
+        <h4>Depth-First Search</h4>
         <PropertiesTable data={DFS_PROPS} />
-        <CalloutBox type="tip">
-          <p>DFS uses much less memory than BFS &mdash; <M>{"O(bm)"}</M> vs <M>{"O(b^d)"}</M>.
-            But it can get stuck in infinite branches and may miss shallower solutions.</p>
-        </CalloutBox>
 
-        <h4>Iterative Deepening Search</h4>
-        <p>
-          <strong>Iterative Deepening Search (IDS)</strong> gets the best of both worlds. It
-          runs DFS with a depth limit of 1, then 2, then 3, and so on. Each iteration uses
-          <M>{"O(bd)"}</M> memory (like DFS), but by increasing the limit it guarantees finding the
-          shallowest solution (like BFS). The overhead of re-expanding shallow nodes is small
-          because most nodes live at the deepest level of the tree.
-        </p>
-        <QuizCard questions={QUIZ_S5} />
-      </section>
-
-      {/* Section 3.6: Uniform-Cost Search */}
-      <section id="section-06" className="scroll-mt-6">
-        <SectionHeader number="3.6" title="Uniform-Cost Search" />
+        <h3>Uniform-Cost Search</h3>
         <p>
           What happens when roads have different lengths? BFS treats every step equally, but
           a two-step path through highways might be shorter than a one-step path through
@@ -415,16 +431,8 @@ export default function Topic03UninformedPage() {
         </CalloutBox>
         <SearchMapViz />
         <PropertiesTable data={UCS_PROPS} />
-        <CalloutBox type="key-idea">
-          <p>UCS = BFS when all step costs are equal. It generalizes BFS to handle
-            weighted graphs, guaranteeing the cheapest path by expanding in order of total cost.</p>
-        </CalloutBox>
-        <QuizCard questions={QUIZ_S6} />
-      </section>
 
-      {/* Section 3.7: Comparing Strategies */}
-      <section id="section-07" className="scroll-mt-6">
-        <SectionHeader number="3.7" title="Comparing Strategies" />
+        <h3>Comparing Strategies</h3>
         <p>
           Now let&rsquo;s put it all together. The table below compares the four uninformed search
           strategies across the dimensions that matter: completeness, optimality, time, and
@@ -446,21 +454,32 @@ export default function Topic03UninformedPage() {
             <em> blindly</em>. What if we could be smarter about where to look? That is the
             motivation for <strong>informed search</strong> (next topic).</p>
         </CalloutBox>
-        <QuizCard questions={QUIZ_S7} />
       </section>
 
-      {/* Section 3.8: Study & Review */}
-      <section id="section-study" className="scroll-mt-6">
-        <SectionHeader number="3.8" title="Study & Review" />
-        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+      {/* ── Check Your Understanding (MCQ) ── */}
+      <TierDivider tier="quiz" />
+      <section id="section-quiz" className="scroll-mt-6">
+        <SectionHeader number="3.4" title="Check Your Understanding" />
+        <h3>Search Formulation</h3>
+        <QuizCard questions={[...QUIZ_S2, ...QUIZ_S3]} />
+        <h3>BFS &amp; DFS</h3>
+        <QuizCard questions={[...QUIZ_S4, ...QUIZ_S5]} />
+        <h3>UCS &amp; Comparison</h3>
+        <QuizCard questions={[...QUIZ_S6, ...QUIZ_S7]} />
+      </section>
+
+      {/* ── Fill in the Blanks (Cloze) ── */}
+      <TierDivider tier="cloze" />
+      <section id="section-cloze" className="scroll-mt-6">
+        <SectionHeader number="3.5" title="Fill in the Blanks" />
+        <p>Test your recall by filling in the missing terms.</p>
         <div className="not-prose">
-          <FlashcardDeck cards={TOPIC_03_FLASHCARDS} topicId="topic-03" compact />
           {TOPIC_03_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
         </div>
       </section>
 
-      {/* Lab 2: Practice Exercises */}
-      <LabDivider />
+      {/* ── Lab Exercises ── */}
+      <TierDivider tier="lab" label="Lab 2: Practice" />
       <section id="section-lab" className="scroll-mt-6">
         <LabProgressBar
           exercises={[
@@ -472,6 +491,16 @@ export default function Topic03UninformedPage() {
         <Exercise1GraphTraversal />
         <Exercise2VacuumWorld />
         <Exercise3RiverCrossing />
+      </section>
+
+      {/* ── Extra Exercises ── */}
+      <TierDivider tier="extra" />
+      <section id="section-extra" className="scroll-mt-6">
+        <SectionHeader number="3.6" title="Extra Exercises" />
+        <p>Review key concepts with flashcards for spaced repetition.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_03_FLASHCARDS} topicId="topic-03" compact />
+        </div>
       </section>
     </div>
   );

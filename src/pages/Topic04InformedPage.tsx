@@ -10,6 +10,9 @@ import AStarMapViz from './visualizations/AStarMapViz.tsx';
 import EightPuzzleViz from './visualizations/EightPuzzleViz.tsx';
 import PathfindingGridViz from './visualizations/PathfindingGridViz.tsx';
 
+// TODO: Embed HeuristicHustleGame here next week
+// const HeuristicHustleGame = lazy(() => import('./visualizations/HeuristicHustleGame.tsx'));
+
 // ---------------------------------------------------------------------------
 // Quiz data
 // ---------------------------------------------------------------------------
@@ -423,6 +426,8 @@ h_SLD(Bucharest) = 0`} />
         </table>
 
         <QuizCard questions={QUIZ_43} />
+
+        {/* TODO: Embed <HeuristicHustleGame /> here next week */}
       </section>
 
       {/* ================================================================= */}
@@ -696,7 +701,7 @@ h(n) <= cost(n, n') + h(n')
         <QuizCard questions={QUIZ_47} />
 
         <div className="not-prose mt-6">
-          <Link to="/topic-05" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors no-underline">
+          <Link to="/topic-05" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors no-underline">
             Next up: Local Search &amp; Optimization &rarr;
           </Link>
         </div>

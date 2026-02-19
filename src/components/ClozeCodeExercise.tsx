@@ -63,7 +63,7 @@ function DraggableChip({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'inline-flex cursor-grab items-center rounded-md border bg-secondary px-3 py-1.5 font-mono text-xs',
+        'inline-flex cursor-grab items-center rounded-md border bg-secondary px-3 py-1.5 font-mono text-xs whitespace-nowrap',
         'select-none touch-none transition-shadow',
         'hover:shadow-md active:cursor-grabbing',
         disabled && 'invisible',
@@ -226,7 +226,7 @@ export default function ClozeCodeExercise({ title, lines }: ClozeCodeExercisePro
           </div>
 
           {/* Chip bank */}
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 overflow-x-auto">
             {shuffledOptions.map((opt) => (
               <DraggableChip
                 key={opt.id}

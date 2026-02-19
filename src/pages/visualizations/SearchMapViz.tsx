@@ -53,12 +53,9 @@ export default function SearchMapViz() {
   const [fringeText, setFringeText] = useState('');
   const [messageText, setMessageText] = useState('');
 
-  const fitDoneRef = useRef(false);
-
   useEffect(() => {
-    if (cw > 0 && !fitDoneRef.current) {
+    if (cw > 0) {
       fitToView(cw, ch, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
-      fitDoneRef.current = true;
     }
   }, [cw, ch, fitToView]);
 
@@ -143,6 +140,9 @@ export default function SearchMapViz() {
     <div className="rounded-lg border bg-card p-4 my-6 overflow-hidden" ref={containerRef}>
       <div className="text-sm font-medium text-muted-foreground mb-3">UCS: Arad to Bucharest</div>
       <canvas ref={canvasRef} style={{ cursor: 'grab' }} />
+      <p className="mt-1 text-[10px] text-muted-foreground/60 text-center select-none">
+        Ctrl + scroll to zoom
+      </p>
       <AlgoControls
         playing={playing}
         canStepForward={canStepForward}

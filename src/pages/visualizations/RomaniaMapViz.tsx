@@ -119,13 +119,11 @@ export default function RomaniaMapViz() {
 
   const { camera, fitToView, screenToWorld } = useCanvasCamera(canvasRef);
   const [hoverCity, setHoverCity] = useState<string | null>(null);
-  const fitDoneRef = useRef(false);
 
-  // Fit camera to world bounds on first size
+  // Fit camera to world bounds on size change
   useEffect(() => {
-    if (cw > 0 && !fitDoneRef.current) {
+    if (cw > 0) {
       fitToView(cw, ch, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
-      fitDoneRef.current = true;
     }
   }, [cw, ch, fitToView]);
 
@@ -184,6 +182,9 @@ export default function RomaniaMapViz() {
         onMouseLeave={handleMouseLeave}
         style={{ cursor: hoverCity ? 'pointer' : 'grab' }}
       />
+      <p className="mt-1 text-[10px] text-muted-foreground/60 text-center select-none">
+        Ctrl + scroll to zoom
+      </p>
     </div>
   );
 }

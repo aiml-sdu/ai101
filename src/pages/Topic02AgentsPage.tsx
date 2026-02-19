@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import SectionHeader from '../components/SectionHeader.tsx';
 import QuizCard, { type QuizQuestion } from '../components/QuizCard.tsx';
@@ -10,11 +11,14 @@ import EnvironmentClassifier from './visualizations/EnvironmentClassifier.tsx';
 import FlashcardDeck from '../components/FlashcardDeck.tsx';
 import ClozeText from '../components/ClozeText.tsx';
 import { TOPIC_02_FLASHCARDS, TOPIC_02_CLOZE } from '../data/study/topic-02-study.ts';
-import LabDivider from '../components/LabDivider.tsx';
+import TierDivider from '../components/TierDivider.tsx';
+import HookQuestion from '../components/HookQuestion.tsx';
 import LabProgressBar from '../components/LabProgressBar.tsx';
 import Exercise1PEASChallenge from './visualizations/lab/Exercise1PEASChallenge.tsx';
 import Exercise2EnvironmentDetective from './visualizations/lab/Exercise2EnvironmentDetective.tsx';
 import Exercise3PickAgent from './visualizations/lab/Exercise3PickAgent.tsx';
+
+const AgentArchitectGame = lazy(() => import('./visualizations/AgentArchitectGame.tsx'));
 
 // ---------------------------------------------------------------------------
 // Quiz data
@@ -207,6 +211,11 @@ export default function Topic02AgentsPage() {
         topic introduces the <strong>agent</strong> as the central concept in AI.
       </p>
 
+      <HookQuestion
+        question="Your Roomba senses dirt, decides to clean, and docks when done. Is that intelligence?"
+        subtext="From thermostats to self-driving cars, every intelligent system follows the same loop: perceive, decide, act."
+      />
+
       <TldrBox items={[
         'Agents perceive via sensors and act via actuators; PEAS defines their task',
         'Rational agents maximize expected performance — they don\'t need to be perfect',
@@ -214,10 +223,84 @@ export default function Topic02AgentsPage() {
         'Agent types range from simple reflex to utility-based and learning agents',
       ]} />
 
-      {/* Section 2.1: The Robot Vacuum Problem */}
-      <section id="section-01" className="scroll-mt-6">
-        <SectionHeader number="2.1" title="The Robot Vacuum Problem" />
+      {/* ── First Principles ── */}
+      <TierDivider tier="first-principles" />
+      <section id="section-first-principles" className="scroll-mt-6">
+        <SectionHeader number="2.1" title="First Principles" />
+
+        <h3>Agents: Sense, Think, Act</h3>
         <p className="lead">
+          Every intelligent system follows the same loop: <strong>perceive</strong> the
+          environment through sensors, <strong>decide</strong> what to do, and
+          {' '}<strong>act</strong> on the environment through actuators.
+        </p>
+        <p>
+          In AI, we call this an <strong>agent</strong>. An agent is anything that perceives
+          its environment through sensors and acts upon it through actuators. Your vacuum
+          cleaner is an agent. A self-driving car is an agent. A chess program is an agent.
+          Even a thermostat is an agent &mdash; it senses temperature, decides if it&rsquo;s too
+          cold or too hot, and turns the heater on or off.
+        </p>
+        <h4>The Agent Function</h4>
+        <p>
+          Formally, an <strong>agent function</strong> maps percept sequences to actions:
+        </p>
+        <pre><code>f : P* &rarr; A</code></pre>
+        <p>
+          where <code>P*</code> is the set of all possible percept sequences (the complete
+          history of everything the agent has ever perceived) and <code>A</code> is the set
+          of available actions. The <strong>agent program</strong> is the concrete
+          implementation of this function &mdash; the actual code running on actual hardware.
+        </p>
+        <CalloutBox type="key-idea">
+          <p>
+            The <strong>function</strong> is the specification &mdash; what the perfect agent would do
+            for every possible percept sequence. The <strong>program</strong> is the implementation &mdash;
+            what we can actually build given finite memory, time, and computing power.
+          </p>
+        </CalloutBox>
+
+        <h3>What Makes an Agent Rational?</h3>
+        <p className="lead">
+          Imagine you&rsquo;re playing poker. A rational player doesn&rsquo;t always win &mdash; but
+          they always make the best bet given what they know.
+        </p>
+        <p>
+          This is a crucial distinction. <strong>Rationality</strong> is not the same as
+          omniscience (knowing everything), clairvoyance (seeing the future), or success
+          (always winning). Rationality means doing the <em>best you can</em> with
+          {' '}<em>what you know</em>.
+        </p>
+        <p>
+          A <strong>rational agent</strong> selects actions that maximize its expected
+          performance measure, given what it has perceived so far and any built-in knowledge
+          it possesses. This is the gold standard we aim for when designing intelligent systems.
+        </p>
+        <h4>The Four Ingredients of Rationality</h4>
+        <p>Four things determine what counts as rational behavior for a given agent:</p>
+        <ol>
+          <li><strong>Performance measure</strong> &mdash; How do we evaluate success? (e.g., amount of dirt cleaned, time taken)</li>
+          <li><strong>Prior knowledge</strong> &mdash; What does the agent already know about the environment?</li>
+          <li><strong>Possible actions</strong> &mdash; What can the agent actually do?</li>
+          <li><strong>Percept sequence to date</strong> &mdash; What has the agent observed so far?</li>
+        </ol>
+        <CalloutBox type="warning">
+          <p>
+            Don&rsquo;t confuse rationality with perfection. A rational agent <em>can</em> fail &mdash;
+            as long as it made the best decision possible with the information it had at the time.
+            A poker player who goes all-in with pocket aces and loses to a lucky river card
+            still made the rational choice.
+          </p>
+        </CalloutBox>
+      </section>
+
+      {/* ── Feynman / Intuitive Explanation ── */}
+      <TierDivider tier="feynman" />
+      <section id="section-feynman" className="scroll-mt-6">
+        <SectionHeader number="2.2" title="Intuitive Explanation" />
+
+        <h3>The Robot Vacuum Problem</h3>
+        <p>
           Your Roomba bumps into a wall, turns, vacuums dirt, returns to its dock.
           It senses, decides, acts. But is it <em>intelligent</em>?
         </p>
@@ -241,89 +324,9 @@ export default function Topic02AgentsPage() {
           This is the sense-decide-act loop in its purest form &mdash; and it&rsquo;s the
           pattern we&rsquo;ll see in every intelligent system we study in this course.
         </p>
-      </section>
 
-      {/* Section 2.2: Agents — Sense, Think, Act */}
-      <section id="section-02" className="scroll-mt-6">
-        <SectionHeader number="2.2" title="Agents: Sense, Think, Act" />
-        <p className="lead">
-          Every intelligent system follows the same loop: <strong>perceive</strong> the
-          environment through sensors, <strong>decide</strong> what to do, and
-          {' '}<strong>act</strong> on the environment through actuators.
-        </p>
+        <h3>Describing Agents: PEAS</h3>
         <p>
-          In AI, we call this an <strong>agent</strong>. An agent is anything that perceives
-          its environment through sensors and acts upon it through actuators. Your vacuum
-          cleaner is an agent. A self-driving car is an agent. A chess program is an agent.
-          Even a thermostat is an agent &mdash; it senses temperature, decides if it&rsquo;s too
-          cold or too hot, and turns the heater on or off.
-        </p>
-        <h3>The Agent Function</h3>
-        <p>
-          Formally, an <strong>agent function</strong> maps percept sequences to actions:
-        </p>
-        <pre><code>f : P* &rarr; A</code></pre>
-        <p>
-          where <code>P*</code> is the set of all possible percept sequences (the complete
-          history of everything the agent has ever perceived) and <code>A</code> is the set
-          of available actions. The <strong>agent program</strong> is the concrete
-          implementation of this function &mdash; the actual code running on actual hardware.
-        </p>
-
-        <CalloutBox type="key-idea">
-          <p>
-            The <strong>function</strong> is the specification &mdash; what the perfect agent would do
-            for every possible percept sequence. The <strong>program</strong> is the implementation &mdash;
-            what we can actually build given finite memory, time, and computing power.
-          </p>
-        </CalloutBox>
-
-        <QuizCard questions={QUIZ_S02} />
-      </section>
-
-      {/* Section 2.3: What Makes an Agent Rational? */}
-      <section id="section-03" className="scroll-mt-6">
-        <SectionHeader number="2.3" title="What Makes an Agent Rational?" />
-        <p className="lead">
-          Imagine you&rsquo;re playing poker. A rational player doesn&rsquo;t always win &mdash; but
-          they always make the best bet given what they know.
-        </p>
-        <p>
-          This is a crucial distinction. <strong>Rationality</strong> is not the same as
-          omniscience (knowing everything), clairvoyance (seeing the future), or success
-          (always winning). Rationality means doing the <em>best you can</em> with
-          {' '}<em>what you know</em>.
-        </p>
-        <p>
-          A <strong>rational agent</strong> selects actions that maximize its expected
-          performance measure, given what it has perceived so far and any built-in knowledge
-          it possesses. This is the gold standard we aim for when designing intelligent systems.
-        </p>
-        <h3>The Four Ingredients of Rationality</h3>
-        <p>Four things determine what counts as rational behavior for a given agent:</p>
-        <ol>
-          <li><strong>Performance measure</strong> &mdash; How do we evaluate success? (e.g., amount of dirt cleaned, time taken)</li>
-          <li><strong>Prior knowledge</strong> &mdash; What does the agent already know about the environment?</li>
-          <li><strong>Possible actions</strong> &mdash; What can the agent actually do?</li>
-          <li><strong>Percept sequence to date</strong> &mdash; What has the agent observed so far?</li>
-        </ol>
-
-        <CalloutBox type="warning">
-          <p>
-            Don&rsquo;t confuse rationality with perfection. A rational agent <em>can</em> fail &mdash;
-            as long as it made the best decision possible with the information it had at the time.
-            A poker player who goes all-in with pocket aces and loses to a lucky river card
-            still made the rational choice.
-          </p>
-        </CalloutBox>
-
-        <QuizCard questions={QUIZ_S03} />
-      </section>
-
-      {/* Section 2.4: Describing Agents — PEAS */}
-      <section id="section-04" className="scroll-mt-6">
-        <SectionHeader number="2.4" title="Describing Agents: PEAS" />
-        <p className="lead">
           To design an agent, you need to specify four things: <strong>Performance measure</strong>,
           {' '}<strong>Environment</strong>, <strong>Actuators</strong>, and <strong>Sensors</strong>.
           This is the <strong>PEAS</strong> framework.
@@ -339,18 +342,23 @@ export default function Topic02AgentsPage() {
           PEAS is a checklist. Before you write a single line of code, you should be able to
           fill in all four boxes. If you can&rsquo;t, you don&rsquo;t yet understand the problem well enough.
         </p>
-        <h3>PEAS Builder</h3>
+        <h4>PEAS Builder</h4>
         <p>Select a scenario and try to fill in the PEAS description, then check your answer.</p>
 
         <PEASBuilder />
 
-        <QuizCard questions={QUIZ_S04} />
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <AgentArchitectGame />
+        </Suspense>
       </section>
 
-      {/* Section 2.5: Types of Environments */}
-      <section id="section-05" className="scroll-mt-6">
-        <SectionHeader number="2.5" title="Types of Environments" />
-        <p className="lead">
+      {/* ── Advanced / Technical ── */}
+      <TierDivider tier="advanced" />
+      <section id="section-advanced" className="scroll-mt-6">
+        <SectionHeader number="2.3" title="Advanced / Technical" />
+
+        <h3>Types of Environments</h3>
+        <p>
           Chess and poker are both games, but they create fundamentally different
           challenges for an AI agent. Understanding <em>why</em> requires classifying
           the environment.
@@ -368,7 +376,7 @@ export default function Topic02AgentsPage() {
           <li><strong>Single-agent vs. multi-agent</strong> &mdash; Are there other agents whose actions affect the outcome? Puzzle: single. Poker: multi-agent.</li>
         </ul>
 
-        <h3>Environment Classifier</h3>
+        <h4>Environment Classifier</h4>
         <p>For each scenario, classify the environment along all six properties. Then check your answers.</p>
 
         <EnvironmentClassifier />
@@ -382,37 +390,32 @@ export default function Topic02AgentsPage() {
           </p>
         </CalloutBox>
 
-        <QuizCard questions={QUIZ_S05} />
-      </section>
-
-      {/* Section 2.6: Agent Architectures */}
-      <section id="section-06" className="scroll-mt-6">
-        <SectionHeader number="2.6" title="Agent Architectures" />
-        <p className="lead">
+        <h3>Agent Architectures</h3>
+        <p>
           There&rsquo;s a spectrum of agent designs, from dead-simple to deeply sophisticated.
           Each trades simplicity for capability.
         </p>
-        <h3>1. Simple Reflex Agent</h3>
+        <h4>1. Simple Reflex Agent</h4>
         <p>
           Acts based on the <em>current percept only</em>, using condition-action rules.
           &ldquo;If dirty, suck. If in A, move right.&rdquo; Fast and simple, but completely blind to history.
           It will keep bouncing between rooms even after both are clean.
         </p>
-        <h3>2. Model-Based Reflex Agent</h3>
+        <h4>2. Model-Based Reflex Agent</h4>
         <p>
           Maintains an <strong>internal model</strong> of the world that tracks things
           it can&rsquo;t currently see. &ldquo;I cleaned room A earlier, and I just cleaned room B,
           so both must be clean now &mdash; I can stop.&rdquo; This lets it handle
           {' '}<em>partially observable</em> environments.
         </p>
-        <h3>3. Goal-Based Agent</h3>
+        <h4>3. Goal-Based Agent</h4>
         <p>
           Has an explicit <strong>goal</strong> (e.g., &ldquo;all rooms clean&rdquo;) and plans
           a sequence of actions to achieve it. This allows the agent to reason about
           the future and choose actions that lead toward the goal, not just react
           to the present.
         </p>
-        <h3>4. Utility-Based Agent</h3>
+        <h4>4. Utility-Based Agent</h4>
         <p>
           Goes beyond binary goals. Uses a <strong>utility function</strong> to rank
           outcomes by desirability. &ldquo;Cleaning gains +100 utility, but moving costs -1.
@@ -420,7 +423,7 @@ export default function Topic02AgentsPage() {
           stay put.&rdquo; This lets the agent choose the <em>best</em> way to achieve its goals.
         </p>
 
-        <h3>Vacuum World Simulation</h3>
+        <h4>Vacuum World Simulation</h4>
         <p>
           Select an agent type, then use the controls to step through or play the simulation.
           Watch how different architectures handle the same two-room world.
@@ -438,27 +441,37 @@ export default function Topic02AgentsPage() {
           </p>
         </CalloutBox>
 
-        <QuizCard questions={QUIZ_S06} />
-
         <div className="not-prose mt-6">
-          <Link to="/topic-03" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors no-underline">
+          <Link to="/topic-03" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors no-underline">
             Next up: Solving problems by searching &rarr;
           </Link>
         </div>
       </section>
 
-      {/* Section 2.7: Study & Review */}
-      <section id="section-study" className="scroll-mt-6">
-        <SectionHeader number="2.7" title="Study & Review" />
-        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+      {/* ── Check Your Understanding (MCQ) ── */}
+      <TierDivider tier="quiz" />
+      <section id="section-quiz" className="scroll-mt-6">
+        <SectionHeader number="2.4" title="Check Your Understanding" />
+        <h3>Agents &amp; Rationality</h3>
+        <QuizCard questions={[...QUIZ_S02, ...QUIZ_S03]} />
+        <h3>PEAS Framework</h3>
+        <QuizCard questions={QUIZ_S04} />
+        <h3>Environments &amp; Architectures</h3>
+        <QuizCard questions={[...QUIZ_S05, ...QUIZ_S06]} />
+      </section>
+
+      {/* ── Fill in the Blanks (Cloze) ── */}
+      <TierDivider tier="cloze" />
+      <section id="section-cloze" className="scroll-mt-6">
+        <SectionHeader number="2.5" title="Fill in the Blanks" />
+        <p>Test your recall by filling in the missing terms.</p>
         <div className="not-prose">
-          <FlashcardDeck cards={TOPIC_02_FLASHCARDS} topicId="topic-02" compact />
           {TOPIC_02_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
         </div>
       </section>
 
-      {/* Lab 1b: Practice Exercises */}
-      <LabDivider label="Lab 1b: Practice" />
+      {/* ── Lab Exercises ── */}
+      <TierDivider tier="lab" label="Lab 1b: Practice" />
       <section id="section-lab" className="scroll-mt-6">
         <LabProgressBar
           exercises={[
@@ -470,6 +483,16 @@ export default function Topic02AgentsPage() {
         <Exercise1PEASChallenge />
         <Exercise2EnvironmentDetective />
         <Exercise3PickAgent />
+      </section>
+
+      {/* ── Extra Exercises ── */}
+      <TierDivider tier="extra" />
+      <section id="section-extra" className="scroll-mt-6">
+        <SectionHeader number="2.6" title="Extra Exercises" />
+        <p>Review key concepts with flashcards for spaced repetition.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_02_FLASHCARDS} topicId="topic-02" compact />
+        </div>
       </section>
     </div>
   );

@@ -156,6 +156,63 @@ export function* dfs(
 }
 
 // ---------------------------------------------------------------------------
+// IDS – Iterative Deepening Search (repeated depth-limited DFS)
+// ---------------------------------------------------------------------------
+
+export function* ids(
+  start: string,
+  goal: string,
+  getNeighbors: GetNeighbors,
+  maxLimit = 20,
+): Generator<SearchState> {
+  let totalExpanded = 0;
+
+  for (let limit = 0; limit <= maxLimit; limit++) {
+    const fringe: FringeEntry[] = [{ node: start, path: [start], cost: 0 }];
+    const explored = new Set<string>();
+
+    yield makeState('init', fringe, explored, `IDS iteration ${limit} (depth limit = ${limit})`);
+
+    while (fringe.length > 0) {
+      const entry = fringe.pop()!;
+      const { node, path, cost } = entry;
+
+      if (explored.has(node)) continue;
+
+      totalExpanded++;
+      yield makeState('expand', fringe, explored, `[Limit ${limit}] Expanding ${node} (depth: ${path.length - 1}) [total expanded: ${totalExpanded}]`, {
+        current: node,
+      });
+
+      if (node === goal) {
+        yield makeState('solution', fringe, explored, `Goal ${goal} reached at depth ${path.length - 1}! Total nodes expanded across all iterations: ${totalExpanded}`, {
+          current: node,
+          path,
+          cost,
+        });
+        return;
+      }
+
+      explored.add(node);
+
+      if (path.length - 1 < limit) {
+        const neighbors = [...getNeighbors(node)].reverse();
+        for (const { city, cost: edgeCost } of neighbors) {
+          if (!explored.has(city)) {
+            fringe.push({ node: city, path: [...path, city], cost: cost + edgeCost });
+            yield makeState('check', fringe, explored, `[Limit ${limit}] Adding ${city} to fringe (depth: ${path.length})`, {
+              current: node,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  yield makeState('failure', [], new Set(), `No path found from ${start} to ${goal} within depth ${maxLimit}`);
+}
+
+// ---------------------------------------------------------------------------
 // UCS – Uniform-Cost Search (priority queue sorted by path cost)
 // ---------------------------------------------------------------------------
 

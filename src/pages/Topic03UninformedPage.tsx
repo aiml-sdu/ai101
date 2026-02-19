@@ -13,6 +13,9 @@ import SearchTreeViz from './visualizations/SearchTreeViz.tsx';
 import SearchMapViz from './visualizations/SearchMapViz.tsx';
 import SideBySideViz from './visualizations/SideBySideViz.tsx';
 import BeTheAlgorithmGame from './visualizations/BeTheAlgorithmGame.tsx';
+import IDSStepViz from './visualizations/IDSStepViz.tsx';
+import AlgorithmRaceViz from './visualizations/AlgorithmRaceViz.tsx';
+import ComplexityExplorerViz from './visualizations/ComplexityExplorerViz.tsx';
 import FlashcardDeck from '../components/FlashcardDeck.tsx';
 import ClozeText from '../components/ClozeText.tsx';
 import { TOPIC_03_FLASHCARDS, TOPIC_03_CLOZE } from '../data/study/topic-03-study.ts';
@@ -374,6 +377,11 @@ export default function Topic03UninformedPage() {
           shallowest solution (like BFS). The overhead of re-expanding shallow nodes is small
           because most nodes live at the deepest level of the tree.
         </p>
+        <p>
+          Step through the visualization below to see exactly how IDS re-explores the tree
+          with increasing depth limits. Notice how previous iterations&rsquo; nodes appear as ghosts.
+        </p>
+        <IDSStepViz />
         <CalloutBox type="tip">
           <p>DFS uses much less memory than BFS &mdash; <M>{"O(bm)"}</M> vs <M>{"O(b^d)"}</M>.
             But it can get stuck in infinite branches and may miss shallower solutions.
@@ -443,6 +451,22 @@ export default function Topic03UninformedPage() {
         <p>
           <em>* Optimal only when all step costs are equal.</em>
         </p>
+        <h4>Race the Algorithms</h4>
+        <p>
+          How do the four algorithms compare on the same tree? Watch them race side by side.
+          Each step advances all algorithms simultaneously &mdash; see which finishes first
+          and how their explored/fringe counts differ.
+        </p>
+        <AlgorithmRaceViz />
+
+        <h4>Feel the Exponential Growth</h4>
+        <p>
+          Formulas like <M>{"O(b^d)"}</M> are abstract. Drag the sliders to see how
+          quickly time and space explode as the branching factor and depth increase &mdash;
+          and why IDS&rsquo;s linear space is such a big deal.
+        </p>
+        <ComplexityExplorerViz />
+
         <p>
           Think you understand the difference? Prove it. In the game below, <strong>you</strong> are
           the algorithm. Click nodes in the exact order that BFS or DFS would expand them.

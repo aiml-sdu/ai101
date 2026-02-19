@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Lock, BookOpen } from 'lucide-react';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
@@ -14,6 +14,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   Collapsible,
@@ -30,14 +31,24 @@ interface SideNavProps {
 export default function SideNav({ activeTopic, activeSection, visitedSections }: SideNavProps) {
   const navigate = useNavigate();
   const progress = useCourseProgress();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(
     () => new Set(activeTopic ? [activeTopic] : []),
   );
 
-  // Keep active topic expanded
-  if (activeTopic && !expandedTopics.has(activeTopic)) {
-    setExpandedTopics((prev) => new Set(prev).add(activeTopic));
-  }
+  // Auto-expand when navigating to a new topic
+  useEffect(() => {
+    if (activeTopic) {
+      setExpandedTopics((prev) => {
+        if (prev.has(activeTopic)) return prev;
+        return new Set(prev).add(activeTopic);
+      });
+    }
+  }, [activeTopic]);
+
+  const closeMobileSidebar = useCallback(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [isMobile, setOpenMobile]);
 
   const toggleExpand = useCallback((topicId: string) => {
     setExpandedTopics((prev) => {
@@ -48,16 +59,15 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
     });
   }, []);
 
-  const handleTopicClick = useCallback((topicId: string, hasSections: boolean) => {
+  const handleTopicClick = useCallback((topicId: string) => {
     navigate(`/${topicId}`);
-    if (hasSections) {
-      toggleExpand(topicId);
-    }
-  }, [navigate, toggleExpand]);
+    closeMobileSidebar();
+  }, [navigate, closeMobileSidebar]);
 
   const handleSectionClick = useCallback((topicId: string, sectionId: string) => {
     navigate(`/${topicId}#${sectionId}`);
-  }, [navigate]);
+    closeMobileSidebar();
+  }, [navigate, closeMobileSidebar]);
 
   return (
     <Sidebar>
@@ -91,7 +101,7 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
                     <SidebarMenuItem>
                       <SidebarMenuButton
                         isActive={isActive}
-                        onClick={() => handleTopicClick(topic.id, false)}
+                        onClick={() => handleTopicClick(topic.id)}
                       >
                         {topic.number > 0 && (
                           <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
@@ -103,7 +113,7 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
                       <SidebarMenuItem>
                         <SidebarMenuButton
                           isActive={activeTopic === 'study'}
-                          onClick={() => navigate('/study')}
+                          onClick={() => { navigate('/study'); closeMobileSidebar(); }}
                         >
                           <BookOpen className="size-4" />
                           <span>Study Hub</span>
@@ -125,7 +135,7 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         isActive={isActive}
-                        onClick={() => handleTopicClick(topic.id, true)}
+                        onClick={() => handleTopicClick(topic.id)}
                       >
                         {topic.number > 0 && (
                           <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>

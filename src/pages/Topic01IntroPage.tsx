@@ -19,6 +19,9 @@ const ApproachesMatrixViz = lazy(() => import('./visualizations/ApproachesMatrix
 const ChineseRoomViz = lazy(() => import('./visualizations/ChineseRoomViz.tsx'));
 const AITimelineViz = lazy(() => import('./visualizations/AITimelineViz.tsx'));
 const SpotTheIntelligenceGame = lazy(() => import('./visualizations/SpotTheIntelligenceGame.tsx'));
+const SenseDecideActViz = lazy(() => import('./visualizations/SenseDecideActViz.tsx'));
+const CapabilitySpectrumViz = lazy(() => import('./visualizations/CapabilitySpectrumViz.tsx'));
+const AIHypeCycleViz = lazy(() => import('./visualizations/AIHypeCycleViz.tsx'));
 
 const CONCEPT_CARDS: ConceptCard[] = [
   {
@@ -186,6 +189,11 @@ export default function Topic01IntroPage() {
           Some learn from data, some follow hand-crafted rules, and some do both. But at
           their core, they all perceive some aspect of the world and act on it.
         </p>
+
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <SenseDecideActViz />
+        </Suspense>
+
         <blockquote>
           <p>
             We call these systems <em>artificially intelligent</em>&mdash;but what does
@@ -310,6 +318,9 @@ export default function Topic01IntroPage() {
         <Suspense fallback={null}>
           <AITimelineViz />
         </Suspense>
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <AIHypeCycleViz />
+        </Suspense>
         <div className="relative ml-4 border-l-2 border-border pl-6 space-y-6" role="list" aria-label="AI history timeline">
           {[
             { year: '1943', content: <><strong>McCulloch &amp; Pitts</strong>&mdash;First mathematical model of a neuron, laying the groundwork for neural networks.</> },
@@ -343,22 +354,11 @@ export default function Topic01IntroPage() {
           hundreds of languages, generate photorealistic images from text descriptions, and
           write code that passes professional-level interviews.
         </p>
-        <h4>What AI Can Do Now</h4>
-        <ul>
-          <li><strong>Image recognition</strong> that surpasses human accuracy on specific benchmarks</li>
-          <li><strong>Natural language understanding</strong> that powers conversational assistants and translation</li>
-          <li><strong>Game playing</strong> at superhuman levels (chess, Go, poker, StarCraft)</li>
-          <li><strong>Scientific discovery</strong>&mdash;AlphaFold predicts protein structures, accelerating biology</li>
-          <li><strong>Creative generation</strong>&mdash;text, images, music, and video from natural language prompts</li>
-        </ul>
-        <h4>What Remains Hard</h4>
-        <ul>
-          <li><strong>Common sense reasoning</strong>&mdash;understanding that water is wet and fire is hot</li>
-          <li><strong>Transfer learning</strong>&mdash;applying knowledge from one domain to a completely different one</li>
-          <li><strong>Robustness</strong>&mdash;handling unexpected situations gracefully instead of failing silently</li>
-          <li><strong>Causal reasoning</strong>&mdash;understanding <em>why</em> things happen, not just <em>what</em> correlates</li>
-          <li><strong>Long-term planning</strong>&mdash;reasoning over extended time horizons with many unknowns</li>
-        </ul>
+        <h4>What AI Can Do Now — and What Remains Hard</h4>
+
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <CapabilitySpectrumViz />
+        </Suspense>
         <CalloutBox type="key-idea">
           <p>Today's AI is narrow &mdash; it excels at specific tasks but lacks the general intelligence humans have. AGI (Artificial General Intelligence) remains an open challenge.</p>
         </CalloutBox>

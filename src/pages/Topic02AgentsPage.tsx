@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import SectionHeader from '../components/SectionHeader.tsx';
 import QuizCard, { type QuizQuestion } from '../components/QuizCard.tsx';
 import CalloutBox from '../components/CalloutBox.tsx';
+import { M, BlockMath } from '../components/Math.tsx';
 import TldrBox from '../components/TldrBox.tsx';
 import VacuumWorldViz from './visualizations/VacuumWorldViz.tsx';
 import VacuumSimulationViz from './visualizations/VacuumSimulationViz.tsx';
@@ -19,6 +20,9 @@ import Exercise2EnvironmentDetective from './visualizations/lab/Exercise2Environ
 import Exercise3PickAgent from './visualizations/lab/Exercise3PickAgent.tsx';
 
 const AgentArchitectGame = lazy(() => import('./visualizations/AgentArchitectGame.tsx'));
+const AgentFunctionTableViz = lazy(() => import('./visualizations/AgentFunctionTableViz.tsx'));
+const AgentArchitectureDiagramViz = lazy(() => import('./visualizations/AgentArchitectureDiagramViz.tsx'));
+const EnvironmentComparisonViz = lazy(() => import('./visualizations/EnvironmentComparisonViz.tsx'));
 
 // ---------------------------------------------------------------------------
 // Quiz data
@@ -245,13 +249,18 @@ export default function Topic02AgentsPage() {
         <p>
           Formally, an <strong>agent function</strong> maps percept sequences to actions:
         </p>
-        <pre><code>f : P* &rarr; A</code></pre>
+        <BlockMath>{'f : \\mathcal{P}^* \\to \\mathcal{A}'}</BlockMath>
         <p>
-          where <code>P*</code> is the set of all possible percept sequences (the complete
-          history of everything the agent has ever perceived) and <code>A</code> is the set
+          where <M>{'\\mathcal{P}^*'}</M> is the set of all possible percept sequences (the complete
+          history of everything the agent has ever perceived) and <M>{'\\mathcal{A}'}</M> is the set
           of available actions. The <strong>agent program</strong> is the concrete
           implementation of this function &mdash; the actual code running on actual hardware.
         </p>
+
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <AgentFunctionTableViz />
+        </Suspense>
+
         <CalloutBox type="key-idea">
           <p>
             The <strong>function</strong> is the specification &mdash; what the perfect agent would do
@@ -381,6 +390,10 @@ export default function Topic02AgentsPage() {
 
         <EnvironmentClassifier />
 
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <EnvironmentComparisonViz />
+        </Suspense>
+
         <CalloutBox type="key-idea">
           <p>
             The hardest environments are <strong>partially observable</strong>, <strong>stochastic</strong>,
@@ -395,6 +408,11 @@ export default function Topic02AgentsPage() {
           There&rsquo;s a spectrum of agent designs, from dead-simple to deeply sophisticated.
           Each trades simplicity for capability.
         </p>
+
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+          <AgentArchitectureDiagramViz />
+        </Suspense>
+
         <h4>1. Simple Reflex Agent</h4>
         <p>
           Acts based on the <em>current percept only</em>, using condition-action rules.

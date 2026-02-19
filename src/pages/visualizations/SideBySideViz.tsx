@@ -45,6 +45,19 @@ export default function SideBySideViz() {
   const bfsCamera = useCanvasCamera(bfsCanvasRef);
   const dfsCamera = useCanvasCamera(dfsCanvasRef);
 
+  const bfsCameraRef = useRef(bfsCamera.camera);
+  bfsCameraRef.current = bfsCamera.camera;
+  const dfsCameraRef = useRef(dfsCamera.camera);
+  dfsCameraRef.current = dfsCamera.camera;
+  const bfsCwRef = useRef(bfsCw);
+  bfsCwRef.current = bfsCw;
+  const bfsChRef = useRef(bfsCh);
+  bfsChRef.current = bfsCh;
+  const dfsCwRef = useRef(dfsCw);
+  dfsCwRef.current = dfsCw;
+  const dfsChRef = useRef(dfsCh);
+  dfsChRef.current = dfsCh;
+
   const fitDoneRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
@@ -66,14 +79,17 @@ export default function SideBySideViz() {
     // BFS side
     const bfsCanvas = bfsCanvasRef.current;
     const bfsStates = bfsStatesRef.current;
-    if (bfsCanvas && bfsStates.length > 0 && bfsCw > 0) {
+    const _bfsCw = bfsCwRef.current;
+    const _bfsCh = bfsChRef.current;
+    const _bfsCamera = bfsCameraRef.current;
+    if (bfsCanvas && bfsStates.length > 0 && _bfsCw > 0) {
       const bState = bfsStates[Math.min(idx, bfsStates.length - 1)];
-      const bCtx = setupCanvas(bfsCanvas, bfsCw, bfsCh);
+      const bCtx = setupCanvas(bfsCanvas, _bfsCw, _bfsCh);
       const bFringe = new Set(bState.fringe.map((e) => e.node));
 
       bCtx.save();
-      bCtx.translate(bfsCamera.camera.x, bfsCamera.camera.y);
-      bCtx.scale(bfsCamera.camera.zoom, bfsCamera.camera.zoom);
+      bCtx.translate(_bfsCamera.x, _bfsCamera.y);
+      bCtx.scale(_bfsCamera.zoom, _bfsCamera.zoom);
 
       drawTree(bCtx, WORLD_W, WORLD_H, {
         current: bState.current,
@@ -90,14 +106,17 @@ export default function SideBySideViz() {
     // DFS side
     const dfsCanvas = dfsCanvasRef.current;
     const dfsStates = dfsStatesRef.current;
-    if (dfsCanvas && dfsStates.length > 0 && dfsCw > 0) {
+    const _dfsCw = dfsCwRef.current;
+    const _dfsCh = dfsChRef.current;
+    const _dfsCamera = dfsCameraRef.current;
+    if (dfsCanvas && dfsStates.length > 0 && _dfsCw > 0) {
       const dState = dfsStates[Math.min(idx, dfsStates.length - 1)];
-      const dCtx = setupCanvas(dfsCanvas, dfsCw, dfsCh);
+      const dCtx = setupCanvas(dfsCanvas, _dfsCw, _dfsCh);
       const dFringe = new Set(dState.fringe.map((e) => e.node));
 
       dCtx.save();
-      dCtx.translate(dfsCamera.camera.x, dfsCamera.camera.y);
-      dCtx.scale(dfsCamera.camera.zoom, dfsCamera.camera.zoom);
+      dCtx.translate(_dfsCamera.x, _dfsCamera.y);
+      dCtx.scale(_dfsCamera.zoom, _dfsCamera.zoom);
 
       drawTree(dCtx, WORLD_W, WORLD_H, {
         current: dState.current,
@@ -111,7 +130,7 @@ export default function SideBySideViz() {
       const stackReversed = [...dState.fringe].reverse();
       setDfsFringeText(formatFringe(stackReversed));
     }
-  }, [bfsCw, bfsCh, dfsCw, dfsCh, bfsCamera.camera, dfsCamera.camera]);
+  }, []);
 
   useEffect(() => {
     bfsStatesRef.current = collectStates(bfs('A', TREE_GOAL, getTreeNeighbors));
@@ -137,12 +156,12 @@ export default function SideBySideViz() {
     return () => {
       controller.destroy();
     };
-  }, [renderState]);
+  }, []);
 
   // Re-render on camera/size change
   useEffect(() => {
     renderState(stateIdxRef.current);
-  }, [bfsCamera.camera, dfsCamera.camera, bfsCw, dfsCw, renderState]);
+  }, [bfsCamera.camera, dfsCamera.camera, bfsCw, dfsCw]);
 
   const handlePlay = useCallback(() => controllerRef.current?.play(), []);
   const handlePause = useCallback(() => controllerRef.current?.pause(), []);

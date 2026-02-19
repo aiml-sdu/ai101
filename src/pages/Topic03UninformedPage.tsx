@@ -12,6 +12,9 @@ import SearchTreeViz from './visualizations/SearchTreeViz.tsx';
 import SearchMapViz from './visualizations/SearchMapViz.tsx';
 import SideBySideViz from './visualizations/SideBySideViz.tsx';
 import BeTheAlgorithmGame from './visualizations/BeTheAlgorithmGame.tsx';
+import FlashcardDeck from '../components/FlashcardDeck.tsx';
+import ClozeText from '../components/ClozeText.tsx';
+import { TOPIC_03_FLASHCARDS, TOPIC_03_CLOZE } from '../data/study/topic-03-study.ts';
 import LabDivider from '../components/LabDivider.tsx';
 import LabProgressBar from '../components/LabProgressBar.tsx';
 import Exercise1GraphTraversal from './visualizations/lab/Exercise1GraphTraversal.tsx';
@@ -444,6 +447,16 @@ export default function Topic03UninformedPage() {
             motivation for <strong>informed search</strong> (next topic).</p>
         </CalloutBox>
         <QuizCard questions={QUIZ_S7} />
+      </section>
+
+      {/* Section 3.8: Study & Review */}
+      <section id="section-study" className="scroll-mt-6">
+        <SectionHeader number="3.8" title="Study & Review" />
+        <p>Drill the key concepts from this topic with flashcards and fill-in-the-blank exercises.</p>
+        <div className="not-prose">
+          <FlashcardDeck cards={TOPIC_03_FLASHCARDS} topicId="topic-03" compact />
+          {TOPIC_03_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
+        </div>
       </section>
 
       {/* Lab 2: Practice Exercises */}

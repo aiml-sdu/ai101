@@ -701,6 +701,7 @@ h(n) <= cost(n, n') + h(n')
           </Link>
         </div>
       </section>
+
     </div>
   );
 }

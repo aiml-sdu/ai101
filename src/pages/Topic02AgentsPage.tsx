@@ -1,517 +1,486 @@
-import { lazy, Suspense } from 'react';
-import { Link } from 'react-router-dom';
-import SectionHeader from '../components/SectionHeader.tsx';
-import QuizCard, { type QuizQuestion } from '../components/QuizCard.tsx';
-import CalloutBox from '../components/CalloutBox.tsx';
-import { M, BlockMath } from '../components/Math.tsx';
-import TldrBox from '../components/TldrBox.tsx';
-import VacuumWorldViz from './visualizations/VacuumWorldViz.tsx';
-import VacuumSimulationViz from './visualizations/VacuumSimulationViz.tsx';
-import PEASBuilder from './visualizations/PEASBuilder.tsx';
-import EnvironmentClassifier from './visualizations/EnvironmentClassifier.tsx';
-import FlashcardDeck from '../components/FlashcardDeck.tsx';
-import ClozeText from '../components/ClozeText.tsx';
-import { TOPIC_02_FLASHCARDS, TOPIC_02_CLOZE } from '../data/study/topic-02-study.ts';
-import TierDivider from '../components/TierDivider.tsx';
-import HookQuestion from '../components/HookQuestion.tsx';
-import LabProgressBar from '../components/LabProgressBar.tsx';
-import Exercise1PEASChallenge from './visualizations/lab/Exercise1PEASChallenge.tsx';
-import Exercise2EnvironmentDetective from './visualizations/lab/Exercise2EnvironmentDetective.tsx';
-import Exercise3PickAgent from './visualizations/lab/Exercise3PickAgent.tsx';
+import { lazy, Suspense, useCallback, type ReactNode } from 'react';
+import LessonStepper from '@/components/LessonStepper';
+import LessonCard from '@/components/LessonCard';
+import QuizCard from '@/components/QuizCard';
+import CalloutBox from '@/components/CalloutBox';
+import CodeBlock from '@/components/CodeBlock';
+import ExerciseCard from '@/components/ExerciseCard';
+import { BlockMath } from '@/components/Math';
+import VacuumWorldViz from './visualizations/VacuumWorldViz';
+import PEASBuilder from './visualizations/PEASBuilder';
+import EnvironmentClassifier from './visualizations/EnvironmentClassifier';
+import {
+  CARDS, SECTIONS,
+  QUIZ_AGENT_BASICS, QUIZ_RATIONALITY_PEAS, QUIZ_ENVIRONMENTS,
+  QUIZ_ARCHITECTURES, QUIZ_SYNTHESIS,
+} from '@/data/topic-02-cards';
 
-const AgentArchitectGame = lazy(() => import('./visualizations/AgentArchitectGame.tsx'));
-const AgentFunctionTableViz = lazy(() => import('./visualizations/AgentFunctionTableViz.tsx'));
-const AgentArchitectureDiagramViz = lazy(() => import('./visualizations/AgentArchitectureDiagramViz.tsx'));
-const EnvironmentComparisonViz = lazy(() => import('./visualizations/EnvironmentComparisonViz.tsx'));
+// Lazy-load heavy visualizations
+const AgentFunctionTableViz = lazy(() => import('./visualizations/AgentFunctionTableViz'));
+const AgentArchitectureDiagramViz = lazy(() => import('./visualizations/AgentArchitectureDiagramViz'));
+const EnvironmentComparisonViz = lazy(() => import('./visualizations/EnvironmentComparisonViz'));
+const AgentArchitectGame = lazy(() => import('./visualizations/AgentArchitectGame'));
+const VacuumSimulationViz = lazy(() => import('./visualizations/VacuumSimulationViz'));
+const Exercise1PEASChallenge = lazy(() => import('./visualizations/lab/Exercise1PEASChallenge'));
+const Exercise2EnvironmentDetective = lazy(() => import('./visualizations/lab/Exercise2EnvironmentDetective'));
+const Exercise3PickAgent = lazy(() => import('./visualizations/lab/Exercise3PickAgent'));
 
-// ---------------------------------------------------------------------------
-// Quiz data
-// ---------------------------------------------------------------------------
-
-const QUIZ_S02: QuizQuestion[] = [
-  {
-    id: 't02-s02-q1',
-    question: "An agent's 'percept sequence' refers to:",
-    options: [
-      'The current sensor reading',
-      'The complete history of all sensor readings',
-      'The list of available actions',
-      "The agent's internal state",
-    ],
-    correctIndex: 1,
-    explanation:
-      "The percept sequence is the complete history of everything the agent has ever perceived. This matters because rational decisions may depend on past observations, not just the current one.",
-  },
-  {
-    id: 't02-s02-q2',
-    question:
-      'The difference between an agent function and an agent program is:',
-    options: [
-      'There is no difference',
-      'The function is the specification; the program is the implementation',
-      'The function runs faster than the program',
-      'The program is always optimal; the function is approximate',
-    ],
-    correctIndex: 1,
-    explanation:
-      "The agent function is the ideal mathematical mapping from percept sequences to actions. The agent program is the actual code that runs on hardware \u2014 it's our best attempt at implementing the function.",
-  },
-];
-
-const QUIZ_S03: QuizQuestion[] = [
-  {
-    id: 't02-s03-q1',
-    question: 'A rational agent must:',
-    options: [
-      'Always succeed at its task',
-      'Know everything about its environment',
-      'Act to maximize its expected performance',
-      'Never make mistakes',
-    ],
-    correctIndex: 2,
-    explanation:
-      "Rationality means maximizing expected performance given available information. A rational agent doesn't need to be omniscient or always succeed \u2014 it just needs to make the best decisions possible.",
-  },
-  {
-    id: 't02-s03-q2',
-    question:
-      'An agent that always vacuums when it senses dirt is rational if:',
-    options: [
-      'It always cleans all the dirt',
-      'The performance measure rewards clean floors and it has no better action available',
-      'It never makes mistakes',
-      'It can see both rooms at once',
-    ],
-    correctIndex: 1,
-    explanation:
-      "Rationality depends on the performance measure and available information. If cleaning when dirt is sensed maximizes expected performance given what the agent knows, then it's rational.",
-  },
-];
-
-const QUIZ_S04: QuizQuestion[] = [
-  {
-    id: 't02-s04-q1',
-    question: "In the PEAS framework, the 'E' stands for:",
-    options: ['Efficiency', 'Environment', 'Evaluation', 'Execution'],
-    correctIndex: 1,
-    explanation:
-      'PEAS = Performance measure, Environment, Actuators, Sensors. The Environment describes the world in which the agent operates.',
-  },
-  {
-    id: 't02-s04-q2',
-    question: 'For a chess-playing agent, which of these is an actuator?',
-    options: [
-      'The chess clock',
-      "The opponent's moves",
-      'Moving a piece on the board',
-      'The current board position',
-    ],
-    correctIndex: 2,
-    explanation:
-      "Actuators are the means by which an agent acts on its environment. In chess, the actuator is the ability to move pieces. The board position is a percept, the opponent's moves are part of the environment, and the clock is a constraint.",
-  },
-];
-
-const QUIZ_S05: QuizQuestion[] = [
-  {
-    id: 't02-s05-q1',
-    question: 'Chess is best described as:',
-    options: [
-      'Fully observable, deterministic, sequential',
-      'Partially observable, stochastic, episodic',
-      'Fully observable, stochastic, sequential',
-      'Partially observable, deterministic, episodic',
-    ],
-    correctIndex: 0,
-    explanation:
-      'In chess, you can see the entire board (fully observable), moves have predictable outcomes (deterministic), and current moves affect future positions (sequential).',
-  },
-  {
-    id: 't02-s05-q2',
-    question:
-      'Which property makes poker fundamentally harder than chess for an AI agent?',
-    options: [
-      "It's multi-agent",
-      "It's partially observable",
-      "It's sequential",
-      "It's discrete",
-    ],
-    correctIndex: 1,
-    explanation:
-      "The key difference is that in poker, you can't see your opponents' cards. This partial observability forces the agent to reason under uncertainty, making it fundamentally harder.",
-  },
-  {
-    id: 't02-s05-q3',
-    question:
-      'A medical diagnosis system operates in what kind of environment?',
-    options: [
-      'Fully observable, deterministic',
-      'Partially observable, stochastic',
-      'Fully observable, stochastic',
-      'Partially observable, deterministic',
-    ],
-    correctIndex: 1,
-    explanation:
-      "A doctor can't observe all internal states of a patient (partially observable), and treatments don't have guaranteed outcomes (stochastic).",
-  },
-];
-
-const QUIZ_S06: QuizQuestion[] = [
-  {
-    id: 't02-s06-q1',
-    question: 'A simple reflex agent decides what to do based on:',
-    options: [
-      'The current percept only',
-      'The complete percept history',
-      'An explicit goal',
-      'A utility function',
-    ],
-    correctIndex: 0,
-    explanation:
-      'Simple reflex agents use condition-action rules based only on the current percept. They have no memory of past percepts.',
-  },
-  {
-    id: 't02-s06-q2',
-    question:
-      'What advantage does a model-based agent have over a simple reflex agent?',
-    options: [
-      "It's faster",
-      'It can handle partially observable environments',
-      'It always finds the optimal solution',
-      "It doesn't need sensors",
-    ],
-    correctIndex: 1,
-    explanation:
-      "Model-based agents maintain internal state that tracks aspects of the world they can't currently see. This lets them operate in partially observable environments where simple reflex agents would fail.",
-  },
-  {
-    id: 't02-s06-q3',
-    question:
-      'A utility-based agent differs from a goal-based agent because it:',
-    options: [
-      'Has no goals',
-      'Can compare different ways of achieving a goal',
-      "Doesn't need sensors",
-      'Only works in deterministic environments',
-    ],
-    correctIndex: 1,
-    explanation:
-      'While a goal-based agent can determine if a state satisfies its goal (binary yes/no), a utility-based agent can rank states by how desirable they are. This lets it choose the best among multiple goal-achieving plans.',
-  },
-];
-
-// ---------------------------------------------------------------------------
-// Page component
-// ---------------------------------------------------------------------------
+function VizLoading() {
+  return <div className="animate-pulse rounded-lg bg-muted h-64 flex items-center justify-center text-muted-foreground text-sm">Loading visualization...</div>;
+}
 
 export default function Topic02AgentsPage() {
+  const renderCard = useCallback((index: number, _onComplete: () => void): ReactNode => {
+    const card = CARDS[index];
+    const section = SECTIONS.find((s) => s.id === card.sectionId);
+
+    switch (card.component) {
+      // ===== Card 0: Is Your Roomba Intelligent? =====
+      case 'RoombaHook':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Your Roomba bumps into a wall, turns, vacuums dirt, returns to its dock.
+              It senses, decides, acts&mdash;but is it <em>intelligent</em>?
+            </p>
+            <p>
+              To answer that, let&rsquo;s strip the problem down: two rooms (A and B),
+              each either clean or dirty. Three actions: <strong>move left</strong>,
+              <strong> move right</strong>, or <strong>suck</strong>.
+            </p>
+            <VacuumWorldViz />
+            <CalloutBox type="info">
+              <p>
+                Every real-world intelligent system&mdash;from self-driving cars to medical
+                diagnosis&mdash;is a more elaborate version of this vacuum cleaner.
+              </p>
+            </CalloutBox>
+            <p>
+              This toy world turns out to be enough to formalize what &ldquo;agent&rdquo;
+              really means.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 1: The Agent Function =====
+      case 'AgentFunction':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              An agent perceives its environment through sensors and acts upon it through
+              actuators. The mapping from what it has seen to what it does next is called
+              the <strong>agent function</strong>.
+            </p>
+            <CalloutBox type="key-idea" title="Agent Function">
+              <BlockMath>{'f : \\mathcal{P}^* \\to \\mathcal{A}'}</BlockMath>
+              <p>
+                where <strong>P*</strong> is the set of all possible percept sequences
+                and <strong>A</strong> is the set of available actions.
+              </p>
+            </CalloutBox>
+            <CodeBlock language="pseudocode" code={`function VACUUM-AGENT(percept):
+  location, status = percept
+  if status == Dirty: return Suck
+  if location == A:   return Right
+  if location == B:   return Left`} />
+            <Suspense fallback={<VizLoading />}>
+              <AgentFunctionTableViz />
+            </Suspense>
+            <CalloutBox type="key-idea">
+              <p>
+                The <strong>function</strong> is the specification&mdash;what the perfect
+                agent would do. The <strong>program</strong> is the implementation&mdash;what
+                we can actually build given finite resources.
+              </p>
+            </CalloutBox>
+            <p>
+              But does this simple program make good decisions? That depends on what we
+              mean by &ldquo;good.&rdquo;
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 2: Quiz: Agent Basics =====
+      case 'QuizAgentBasics':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <QuizCard questions={QUIZ_AGENT_BASICS} />
+          </LessonCard>
+        );
+
+      // ===== Card 3: Rational != Perfect =====
+      case 'Rationality':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              A rational agent does not always win&mdash;but it always makes the best bet
+              given what it knows.
+            </p>
+            <CalloutBox type="key-idea" title="Rationality">
+              <p>
+                For each possible percept sequence, a rational agent selects the action that
+                is expected to maximize its performance measure, given the evidence provided
+                by the percept sequence and whatever built-in knowledge the agent has.
+              </p>
+            </CalloutBox>
+            <h3>The Four Ingredients</h3>
+            <ol>
+              <li><strong>Performance measure</strong>&mdash;How do we evaluate success?</li>
+              <li><strong>Prior knowledge</strong>&mdash;What does the agent already know?</li>
+              <li><strong>Possible actions</strong>&mdash;What can the agent do?</li>
+              <li><strong>Percept sequence</strong>&mdash;What has the agent observed so far?</li>
+            </ol>
+            <CalloutBox type="warning" title="Rationality vs Perfection">
+              <p>
+                A poker player who goes all-in with pocket aces and loses to a lucky river
+                card still made the rational choice. Rationality maximizes expected
+                performance&mdash;it cannot guarantee outcomes in a stochastic world.
+              </p>
+            </CalloutBox>
+            <p>
+              Knowing what &ldquo;rational&rdquo; means is one thing. Designing an agent is
+              another&mdash;and that starts with four letters: P-E-A-S.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 4: The PEAS Framework =====
+      case 'PEASFramework':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Before writing a single line of code, specify four things:
+              <strong> Performance</strong> measure, <strong>Environment</strong>,
+              <strong> Actuators</strong>, and <strong>Sensors</strong>.
+            </p>
+            <CalloutBox type="key-idea" title="PEAS">
+              <ul>
+                <li><strong>P</strong>erformance measure&mdash;What counts as success?</li>
+                <li><strong>E</strong>nvironment&mdash;What world does the agent operate in?</li>
+                <li><strong>A</strong>ctuators&mdash;How does the agent affect the world?</li>
+                <li><strong>S</strong>ensors&mdash;How does the agent perceive the world?</li>
+              </ul>
+            </CalloutBox>
+            <PEASBuilder />
+            <CalloutBox type="tip">
+              <p>
+                Start with P. A vague performance measure leads to agents that optimize the
+                wrong thing. Everything else follows from what success looks like.
+              </p>
+            </CalloutBox>
+            <p>
+              PEAS tells you <em>what</em> to build. But the environment determines
+              <em> how hard</em> the build will be.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 5: Quiz: Rationality & PEAS =====
+      case 'QuizRationalityPEAS':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <QuizCard questions={QUIZ_RATIONALITY_PEAS} />
+          </LessonCard>
+        );
+
+      // ===== Card 6: Why Chess != Poker =====
+      case 'EnvDimensions':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Chess and poker are both games with clear rules. But they create fundamentally
+              different challenges for an AI agent. Every environment can be described along
+              six dimensions:
+            </p>
+            <ul>
+              <li><strong>Fully vs. partially observable</strong>&mdash;Can the agent see the entire state?</li>
+              <li><strong>Deterministic vs. stochastic</strong>&mdash;Are outcomes predictable?</li>
+              <li><strong>Episodic vs. sequential</strong>&mdash;Do decisions affect future ones?</li>
+              <li><strong>Static vs. dynamic</strong>&mdash;Does the world change while deliberating?</li>
+              <li><strong>Discrete vs. continuous</strong>&mdash;Is the state/action space finite?</li>
+              <li><strong>Single-agent vs. multi-agent</strong>&mdash;Are there other agents?</li>
+            </ul>
+            <CalloutBox type="key-idea" title="The Difficulty Spectrum">
+              <p>
+                The hardest environments are partially observable, stochastic, sequential,
+                dynamic, continuous, and multi-agent. This is why self-driving cars are so
+                much harder than chess.
+              </p>
+            </CalloutBox>
+            <p>
+              These six dimensions are easier to see than to remember. Let&rsquo;s compare
+              some environments visually.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 7: Comparing Worlds =====
+      case 'EnvComparison':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Select two environments and compare their profiles. Notice how the six
+              dimensions interact.
+            </p>
+            <Suspense fallback={<VizLoading />}>
+              <EnvironmentComparisonViz />
+            </Suspense>
+            <CalloutBox type="info">
+              <p>
+                A self-driving car scores &ldquo;hard&rdquo; on nearly every dimension.
+                Poker is hard mainly because of partial observability and stochasticity. The
+                shape of the profile tells you what kind of agent you need.
+              </p>
+            </CalloutBox>
+            <p>
+              Now it&rsquo;s your turn to classify. Can you identify each dimension for
+              real-world scenarios?
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 8: Environment Detective =====
+      case 'EnvClassifier':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              For each scenario, classify the environment along all six dimensions.
+            </p>
+            <EnvironmentClassifier />
+          </LessonCard>
+        );
+
+      // ===== Card 9: Quiz: Environments =====
+      case 'QuizEnvironments':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <QuizCard questions={QUIZ_ENVIRONMENTS} />
+          </LessonCard>
+        );
+
+      // ===== Card 10: Four Flavors of Intelligence =====
+      case 'ArchSpectrum':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              A thermostat and a self-driving car are both agents. Both sense and act. But a
+              thermostat follows one rule while a self-driving car builds a model of the world
+              and plans ahead.
+            </p>
+            <p>
+              This gap reveals a spectrum of four architectures, each trading simplicity for
+              capability:
+            </p>
+            <Suspense fallback={<VizLoading />}>
+              <AgentArchitectureDiagramViz />
+            </Suspense>
+            <CalloutBox type="key-idea" title="Design Principle">
+              <p>
+                Don&rsquo;t build a utility-based agent when a simple reflex agent would do.
+                Over-engineering wastes resources; under-engineering produces fragile systems.
+              </p>
+            </CalloutBox>
+            <p>
+              Let&rsquo;s look at the two simplest architectures head-to-head&mdash;and see
+              why memory matters.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 11: Reflex: Simple vs Model-Based =====
+      case 'ReflexAgents':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              A simple reflex agent acts on the current percept only. A model-based agent
+              remembers what it cannot currently see.
+            </p>
+            <h3>Simple Reflex Agent</h3>
+            <CodeBlock language="pseudocode" code={`function SIMPLE-REFLEX-AGENT(percept):
+  state  = INTERPRET-INPUT(percept)
+  rule   = RULE-MATCH(state, rules)
+  action = rule.ACTION
+  return action`} />
+            <h3>Model-Based Reflex Agent</h3>
+            <CodeBlock language="pseudocode" code={`function MODEL-BASED-AGENT(percept):
+  state  = UPDATE-STATE(state, action, percept, model)
+  rule   = RULE-MATCH(state, rules)
+  action = rule.ACTION
+  return action`} />
+            <Suspense fallback={<VizLoading />}>
+              <VacuumSimulationViz />
+            </Suspense>
+            <CalloutBox type="warning">
+              <p>
+                A simple reflex agent in a partially observable environment will loop
+                forever. The vacuum keeps bouncing between rooms because it has no memory
+                of what it already cleaned.
+              </p>
+            </CalloutBox>
+            <p>
+              Memory helps, but it&rsquo;s still reactive. What if the agent needs to plan
+              for the future?
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 12: Goals and Utility =====
+      case 'GoalUtility':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Model-based agents remember the past. Goal-based agents plan for the future.
+              Utility-based agents choose the <em>best</em> plan.
+            </p>
+            <h3>Goal-Based Agent</h3>
+            <p>
+              Has an explicit goal and plans action sequences to achieve it&mdash;reasoning
+              about consequences, not just reacting to the present.
+            </p>
+            <h3>Utility-Based Agent</h3>
+            <p>
+              Ranks outcomes by desirability with a utility function, not binary goal
+              satisfaction.
+            </p>
+            <BlockMath>{'U : S \\to \\mathbb{R}'}</BlockMath>
+            <CalloutBox type="tip">
+              <p>
+                Think of goals as pass/fail and utility as a score. A goal-based agent
+                knows if a destination is reachable. A utility-based agent picks the route
+                with the best tradeoff of speed, fuel, and comfort.
+              </p>
+            </CalloutBox>
+            <Suspense fallback={<VizLoading />}>
+              <VacuumSimulationViz />
+            </Suspense>
+            <CalloutBox type="key-idea" title="The Complexity Tradeoff">
+              <p>
+                Simple reflex &rarr; model-based &rarr; goal-based &rarr; utility-based.
+                Each layer adds capability (memory, planning, optimization) and complexity.
+                The right choice depends on the environment.
+              </p>
+            </CalloutBox>
+            <p>
+              So which architecture wins? That depends entirely on the environment.
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 13: Quiz: Architectures =====
+      case 'QuizArchitectures':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <QuizCard questions={QUIZ_ARCHITECTURES} />
+          </LessonCard>
+        );
+
+      // ===== Card 14: Match the Agent to the World =====
+      case 'MatchPrinciple':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              The environment determines the agent. A simple reflex agent thrives in a fully
+              observable, deterministic world&mdash;but collapses in a partially observable,
+              stochastic one.
+            </p>
+            <div className="not-prose my-4 overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 font-semibold">Environment Property</th>
+                    <th className="text-left py-2 font-semibold">Demands</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  <tr><td className="py-2 pr-4">Partially observable</td><td className="py-2">Model-based (needs internal state)</td></tr>
+                  <tr><td className="py-2 pr-4">Stochastic</td><td className="py-2">Goal/Utility-based (needs planning under uncertainty)</td></tr>
+                  <tr><td className="py-2 pr-4">Sequential</td><td className="py-2">At least model-based (history matters)</td></tr>
+                  <tr><td className="py-2 pr-4">Dynamic</td><td className="py-2">Fast reaction or planning ahead</td></tr>
+                  <tr><td className="py-2 pr-4">Continuous</td><td className="py-2">Utility-based (fine-grained optimization)</td></tr>
+                  <tr><td className="py-2 pr-4">Multi-agent</td><td className="py-2">Utility-based (must model other agents)</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <CalloutBox type="key-idea" title="The Core Design Principle">
+              <p>
+                Match the simplest architecture to the environment&rsquo;s complexity.
+                Every dimension that increases difficulty&mdash;partial observability,
+                stochasticity, multi-agent competition&mdash;demands a more sophisticated
+                architecture.
+              </p>
+            </CalloutBox>
+            <p>
+              Put this principle to the test. Given a real-world scenario, can you pick the
+              right architecture?
+            </p>
+          </LessonCard>
+        );
+
+      // ===== Card 15: Architect Challenge =====
+      case 'ArchitectGame':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              For each scenario, pick the simplest agent architecture that will succeed.
+            </p>
+            <Suspense fallback={<VizLoading />}>
+              <AgentArchitectGame />
+            </Suspense>
+          </LessonCard>
+        );
+
+      // ===== Card 16: Quiz: Tying It Together =====
+      case 'QuizSynthesis':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <QuizCard questions={QUIZ_SYNTHESIS} />
+          </LessonCard>
+        );
+
+      // ===== Card 17: Lab 1b: Exercises =====
+      case 'LabExercises':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>Put your knowledge into practice with three hands-on exercises.</p>
+            <ExerciseCard exerciseId="lab-t02-ex1" number={1} title="PEAS Challenge" totalSteps={3} defaultOpen>
+              <Suspense fallback={<VizLoading />}>
+                <Exercise1PEASChallenge />
+              </Suspense>
+            </ExerciseCard>
+            <ExerciseCard exerciseId="lab-t02-ex2" number={2} title="Environment Detective" totalSteps={3}>
+              <Suspense fallback={<VizLoading />}>
+                <Exercise2EnvironmentDetective />
+              </Suspense>
+            </ExerciseCard>
+            <ExerciseCard exerciseId="lab-t02-ex3" number={3} title="Pick the Agent" totalSteps={3}>
+              <Suspense fallback={<VizLoading />}>
+                <Exercise3PickAgent />
+              </Suspense>
+            </ExerciseCard>
+          </LessonCard>
+        );
+
+      default:
+        return (
+          <LessonCard title={card.title}>
+            <p>Card content coming soon.</p>
+          </LessonCard>
+        );
+    }
+  }, []);
+
   return (
-    <div className="prose">
-      <h1>Topic 2: Intelligent Agents</h1>
-      <p className="lead">
-        An AI system doesn&rsquo;t just think&mdash;it <em>acts</em>. From a
-        thermostat to a self-driving car, every intelligent system follows the
-        same pattern: perceive the world, decide what to do, and do it. This
-        topic introduces the <strong>agent</strong> as the central concept in AI.
+    <div>
+      <h1 className="text-3xl font-bold tracking-tight mb-2">Topic 2: Intelligent Agents</h1>
+      <p className="text-muted-foreground mb-4">
+        From thermostats to self-driving cars: perceive, decide, act.
       </p>
-
-      <HookQuestion
-        question="Your Roomba senses dirt, decides to clean, and docks when done. Is that intelligence?"
-        subtext="From thermostats to self-driving cars, every intelligent system follows the same loop: perceive, decide, act."
+      <LessonStepper
+        cards={CARDS}
+        sections={SECTIONS}
+        storagePrefix="lesson-t02"
+        renderCard={renderCard}
       />
-
-      <TldrBox items={[
-        'Agents perceive via sensors and act via actuators; PEAS defines their task',
-        'Rational agents maximize expected performance — they don\'t need to be perfect',
-        'Environments vary: fully/partially observable, deterministic/stochastic, static/dynamic',
-        'Agent types range from simple reflex to utility-based and learning agents',
-      ]} />
-
-      {/* ── First Principles ── */}
-      <TierDivider tier="first-principles" />
-      <section id="section-first-principles" className="scroll-mt-6">
-        <SectionHeader number="2.1" title="First Principles" />
-
-        <h3>Agents: Sense, Think, Act</h3>
-        <p className="lead">
-          Every intelligent system follows the same loop: <strong>perceive</strong> the
-          environment through sensors, <strong>decide</strong> what to do, and
-          {' '}<strong>act</strong> on the environment through actuators.
-        </p>
-        <p>
-          In AI, we call this an <strong>agent</strong>. An agent is anything that perceives
-          its environment through sensors and acts upon it through actuators. Your vacuum
-          cleaner is an agent. A self-driving car is an agent. A chess program is an agent.
-          Even a thermostat is an agent &mdash; it senses temperature, decides if it&rsquo;s too
-          cold or too hot, and turns the heater on or off.
-        </p>
-        <h4>The Agent Function</h4>
-        <p>
-          Formally, an <strong>agent function</strong> maps percept sequences to actions:
-        </p>
-        <BlockMath>{'f : \\mathcal{P}^* \\to \\mathcal{A}'}</BlockMath>
-        <p>
-          where <M>{'\\mathcal{P}^*'}</M> is the set of all possible percept sequences (the complete
-          history of everything the agent has ever perceived) and <M>{'\\mathcal{A}'}</M> is the set
-          of available actions. The <strong>agent program</strong> is the concrete
-          implementation of this function &mdash; the actual code running on actual hardware.
-        </p>
-
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
-          <AgentFunctionTableViz />
-        </Suspense>
-
-        <CalloutBox type="key-idea">
-          <p>
-            The <strong>function</strong> is the specification &mdash; what the perfect agent would do
-            for every possible percept sequence. The <strong>program</strong> is the implementation &mdash;
-            what we can actually build given finite memory, time, and computing power.
-          </p>
-        </CalloutBox>
-
-        <h3>What Makes an Agent Rational?</h3>
-        <p className="lead">
-          Imagine you&rsquo;re playing poker. A rational player doesn&rsquo;t always win &mdash; but
-          they always make the best bet given what they know.
-        </p>
-        <p>
-          This is a crucial distinction. <strong>Rationality</strong> is not the same as
-          omniscience (knowing everything), clairvoyance (seeing the future), or success
-          (always winning). Rationality means doing the <em>best you can</em> with
-          {' '}<em>what you know</em>.
-        </p>
-        <p>
-          A <strong>rational agent</strong> selects actions that maximize its expected
-          performance measure, given what it has perceived so far and any built-in knowledge
-          it possesses. This is the gold standard we aim for when designing intelligent systems.
-        </p>
-        <h4>The Four Ingredients of Rationality</h4>
-        <p>Four things determine what counts as rational behavior for a given agent:</p>
-        <ol>
-          <li><strong>Performance measure</strong> &mdash; How do we evaluate success? (e.g., amount of dirt cleaned, time taken)</li>
-          <li><strong>Prior knowledge</strong> &mdash; What does the agent already know about the environment?</li>
-          <li><strong>Possible actions</strong> &mdash; What can the agent actually do?</li>
-          <li><strong>Percept sequence to date</strong> &mdash; What has the agent observed so far?</li>
-        </ol>
-        <CalloutBox type="warning">
-          <p>
-            Don&rsquo;t confuse rationality with perfection. A rational agent <em>can</em> fail &mdash;
-            as long as it made the best decision possible with the information it had at the time.
-            A poker player who goes all-in with pocket aces and loses to a lucky river card
-            still made the rational choice.
-          </p>
-        </CalloutBox>
-      </section>
-
-      {/* ── Feynman / Intuitive Explanation ── */}
-      <TierDivider tier="feynman" />
-      <section id="section-feynman" className="scroll-mt-6">
-        <SectionHeader number="2.2" title="Intuitive Explanation" />
-
-        <h3>The Robot Vacuum Problem</h3>
-        <p>
-          Your Roomba bumps into a wall, turns, vacuums dirt, returns to its dock.
-          It senses, decides, acts. But is it <em>intelligent</em>?
-        </p>
-        <p>
-          To answer that question, let&rsquo;s strip the problem down to its simplest possible form.
-          Forget about furniture, battery life, and floor plans. Imagine the vacuum lives in a
-          tiny world: just <strong>two rooms</strong> (A and B), each either clean or dirty. The
-          vacuum can sense which room it&rsquo;s in and whether there&rsquo;s dirt. It can do three things:
-          {' '}<strong>move left</strong>, <strong>move right</strong>, or <strong>suck</strong>.
-        </p>
-        <p>
-          This absurdly simple setup is the foundation of one of AI&rsquo;s most important
-          ideas. Every real-world intelligent system &mdash; from self-driving cars to medical
-          diagnosis tools &mdash; is, at its core, a more elaborate version of this vacuum cleaner.
-        </p>
-
-        <VacuumWorldViz />
-
-        <p>
-          Watch the agent above. It moves between rooms, checks for dirt, and cleans.
-          This is the sense-decide-act loop in its purest form &mdash; and it&rsquo;s the
-          pattern we&rsquo;ll see in every intelligent system we study in this course.
-        </p>
-
-        <h3>Describing Agents: PEAS</h3>
-        <p>
-          To design an agent, you need to specify four things: <strong>Performance measure</strong>,
-          {' '}<strong>Environment</strong>, <strong>Actuators</strong>, and <strong>Sensors</strong>.
-          This is the <strong>PEAS</strong> framework.
-        </p>
-        <p>
-          Consider a self-driving taxi. Its <em>performance measure</em> includes safety,
-          arrival time, legal compliance, and passenger comfort. Its <em>environment</em>
-          {' '}consists of roads, traffic, weather, and pedestrians. Its <em>actuators</em> are the
-          steering wheel, accelerator, brake, and signals. Its <em>sensors</em> include cameras,
-          lidar, GPS, and a speedometer.
-        </p>
-        <p>
-          PEAS is a checklist. Before you write a single line of code, you should be able to
-          fill in all four boxes. If you can&rsquo;t, you don&rsquo;t yet understand the problem well enough.
-        </p>
-        <h4>PEAS Builder</h4>
-        <p>Select a scenario and try to fill in the PEAS description, then check your answer.</p>
-
-        <PEASBuilder />
-
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
-          <AgentArchitectGame />
-        </Suspense>
-      </section>
-
-      {/* ── Advanced / Technical ── */}
-      <TierDivider tier="advanced" />
-      <section id="section-advanced" className="scroll-mt-6">
-        <SectionHeader number="2.3" title="Advanced / Technical" />
-
-        <h3>Types of Environments</h3>
-        <p>
-          Chess and poker are both games, but they create fundamentally different
-          challenges for an AI agent. Understanding <em>why</em> requires classifying
-          the environment.
-        </p>
-        <p>
-          Every environment can be described along six dimensions. These properties determine
-          how hard it is to build an agent that performs well:
-        </p>
-        <ul>
-          <li><strong>Fully vs. partially observable</strong> &mdash; Can the agent see the entire state of the environment? Chess: yes. Poker: no (hidden cards).</li>
-          <li><strong>Deterministic vs. stochastic</strong> &mdash; Does the next state follow deterministically from the current state and action? Chess: yes. Backgammon: no (dice rolls).</li>
-          <li><strong>Episodic vs. sequential</strong> &mdash; Are decisions independent, or does each decision affect future ones? Image classification: episodic. Chess: sequential.</li>
-          <li><strong>Static vs. dynamic</strong> &mdash; Does the environment change while the agent is deliberating? Chess (with clock): semi-dynamic. Traffic: dynamic.</li>
-          <li><strong>Discrete vs. continuous</strong> &mdash; Is the state/action/time space finite or infinite? Chess: discrete. Driving: continuous.</li>
-          <li><strong>Single-agent vs. multi-agent</strong> &mdash; Are there other agents whose actions affect the outcome? Puzzle: single. Poker: multi-agent.</li>
-        </ul>
-
-        <h4>Environment Classifier</h4>
-        <p>For each scenario, classify the environment along all six properties. Then check your answers.</p>
-
-        <EnvironmentClassifier />
-
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
-          <EnvironmentComparisonViz />
-        </Suspense>
-
-        <CalloutBox type="key-idea">
-          <p>
-            The hardest environments are <strong>partially observable</strong>, <strong>stochastic</strong>,
-            {' '}<strong>sequential</strong>, <strong>dynamic</strong>, <strong>continuous</strong>, and
-            {' '}<strong>multi-agent</strong>. This is why self-driving cars are so hard &mdash; they face
-            the worst-case combination of every dimension.
-          </p>
-        </CalloutBox>
-
-        <h3>Agent Architectures</h3>
-        <p>
-          There&rsquo;s a spectrum of agent designs, from dead-simple to deeply sophisticated.
-          Each trades simplicity for capability.
-        </p>
-
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
-          <AgentArchitectureDiagramViz />
-        </Suspense>
-
-        <h4>1. Simple Reflex Agent</h4>
-        <p>
-          Acts based on the <em>current percept only</em>, using condition-action rules.
-          &ldquo;If dirty, suck. If in A, move right.&rdquo; Fast and simple, but completely blind to history.
-          It will keep bouncing between rooms even after both are clean.
-        </p>
-        <h4>2. Model-Based Reflex Agent</h4>
-        <p>
-          Maintains an <strong>internal model</strong> of the world that tracks things
-          it can&rsquo;t currently see. &ldquo;I cleaned room A earlier, and I just cleaned room B,
-          so both must be clean now &mdash; I can stop.&rdquo; This lets it handle
-          {' '}<em>partially observable</em> environments.
-        </p>
-        <h4>3. Goal-Based Agent</h4>
-        <p>
-          Has an explicit <strong>goal</strong> (e.g., &ldquo;all rooms clean&rdquo;) and plans
-          a sequence of actions to achieve it. This allows the agent to reason about
-          the future and choose actions that lead toward the goal, not just react
-          to the present.
-        </p>
-        <h4>4. Utility-Based Agent</h4>
-        <p>
-          Goes beyond binary goals. Uses a <strong>utility function</strong> to rank
-          outcomes by desirability. &ldquo;Cleaning gains +100 utility, but moving costs -1.
-          Both rooms are clean, so any movement would reduce my total utility &mdash;
-          stay put.&rdquo; This lets the agent choose the <em>best</em> way to achieve its goals.
-        </p>
-
-        <h4>Vacuum World Simulation</h4>
-        <p>
-          Select an agent type, then use the controls to step through or play the simulation.
-          Watch how different architectures handle the same two-room world.
-        </p>
-
-        <VacuumSimulationViz />
-
-        <CalloutBox type="tip">
-          <p>
-            Simple reflex agents are fast but fragile. As you add memory (model-based), goals,
-            and utility functions, agents become more capable but also more complex. There&rsquo;s
-            always a trade-off. Try running each agent type above and compare their behavior
-            &mdash; notice how the simple reflex agent keeps moving even after both rooms are clean,
-            while the model-based agent knows to stop.
-          </p>
-        </CalloutBox>
-
-        <div className="not-prose mt-6">
-          <Link to="/topic-03" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors no-underline">
-            Next up: Solving problems by searching &rarr;
-          </Link>
-        </div>
-      </section>
-
-      {/* ── Check Your Understanding (MCQ) ── */}
-      <TierDivider tier="quiz" />
-      <section id="section-quiz" className="scroll-mt-6">
-        <SectionHeader number="2.4" title="Check Your Understanding" />
-        <h3>Agents &amp; Rationality</h3>
-        <QuizCard questions={[...QUIZ_S02, ...QUIZ_S03]} />
-        <h3>PEAS Framework</h3>
-        <QuizCard questions={QUIZ_S04} />
-        <h3>Environments &amp; Architectures</h3>
-        <QuizCard questions={[...QUIZ_S05, ...QUIZ_S06]} />
-      </section>
-
-      {/* ── Fill in the Blanks (Cloze) ── */}
-      <TierDivider tier="cloze" />
-      <section id="section-cloze" className="scroll-mt-6">
-        <SectionHeader number="2.5" title="Fill in the Blanks" />
-        <p>Test your recall by filling in the missing terms.</p>
-        <div className="not-prose">
-          {TOPIC_02_CLOZE.map((ex) => <ClozeText key={ex.id} exercise={ex} />)}
-        </div>
-      </section>
-
-      {/* ── Lab Exercises ── */}
-      <TierDivider tier="lab" label="Lab 1b: Practice" />
-      <section id="section-lab" className="scroll-mt-6">
-        <LabProgressBar
-          exercises={[
-            { id: 'lab-t02-ex1', steps: 3, label: 'Exercise 1' },
-            { id: 'lab-t02-ex2', steps: 3, label: 'Exercise 2' },
-            { id: 'lab-t02-ex3', steps: 3, label: 'Exercise 3' },
-          ]}
-        />
-        <Exercise1PEASChallenge />
-        <Exercise2EnvironmentDetective />
-        <Exercise3PickAgent />
-      </section>
-
-      {/* ── Extra Exercises ── */}
-      <TierDivider tier="extra" />
-      <section id="section-extra" className="scroll-mt-6">
-        <SectionHeader number="2.6" title="Extra Exercises" />
-        <p>Review key concepts with flashcards for spaced repetition.</p>
-        <div className="not-prose">
-          <FlashcardDeck cards={TOPIC_02_FLASHCARDS} topicId="topic-02" compact />
-        </div>
-      </section>
     </div>
   );
 }

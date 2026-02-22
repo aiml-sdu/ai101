@@ -1,14 +1,6 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import {
-  setupCanvas,
-  drawRoundRect,
-  drawText,
-  drawCircle,
-  drawLine,
-  getThemeColors,
-} from '../../visualizations/canvas-utils.ts';
-import { useContainerSize } from '../../hooks/useContainerSize.ts';
-import { useCanvasCamera } from '../../hooks/useCanvasCamera.ts';
+import { useRef, useEffect, useState } from 'react';
+import * as d3 from 'd3';
+import { useContainerSize } from '@/hooks/useContainerSize';
 
 // ---- Constants ----
 
@@ -57,194 +49,359 @@ const AI_WINTERS: AIWinter[] = [
 // Map a year to world X coordinate
 const YEAR_MIN = 1940;
 const YEAR_MAX = 2025;
-
-function yearToX(year: number): number {
-  const margin = 80;
-  return margin + ((year - YEAR_MIN) / (YEAR_MAX - YEAR_MIN)) * (WORLD_W - margin * 2);
-}
+const MARGIN = 80;
 
 // ---- Component ----
 
 export default function AITimelineViz() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fitDoneRef = useRef(false);
+  const svgRef = useRef<SVGSVGElement>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const { width: containerW } = useContainerSize(containerRef, { width: 700, height: 350 });
   const displayW = Math.min(containerW - 16, 900);
   const displayH = 350;
 
-  const { camera, fitToView, screenToWorld } = useCanvasCamera(canvasRef);
-
-  // Fit on mount
   useEffect(() => {
-    if (displayW > 0 && !fitDoneRef.current) {
-      fitToView(displayW, displayH, { x: 0, y: 0, w: WORLD_W, h: WORLD_H });
-      fitDoneRef.current = true;
-    }
-  }, [displayW, displayH, fitToView]);
+    const svg = d3.select(svgRef.current);
+    if (!svg.node() || displayW <= 0) return;
 
-  // Compute card positions (stable reference)
-  const cardPositions = useRef<{ x: number; y: number; w: number; h: number }[]>([]);
-  if (cardPositions.current.length === 0) {
-    cardPositions.current = MILESTONES.map((m, i) => {
-      const cx = yearToX(m.year);
-      const above = i % 2 === 0;
-      const cardX = cx - CARD_W / 2;
-      const cardY = above ? TIMELINE_Y - 50 - CARD_H : TIMELINE_Y + 50;
-      return { x: cardX, y: cardY, w: CARD_W, h: CARD_H };
-    });
-  }
+    // Clear previous content
+    svg.selectAll('*').remove();
 
-  // Draw
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || displayW <= 0) return;
+    // Set up SVG dimensions and viewBox
+    svg.attr('width', displayW).attr('height', displayH).attr('viewBox', `0 0 ${WORLD_W} ${WORLD_H}`);
 
-    const ctx = setupCanvas(canvas, displayW, displayH);
-    const colors = getThemeColors();
+    // Create D3 scale for year to X coordinate
+    const xScale = d3.scaleLinear().domain([YEAR_MIN, YEAR_MAX]).range([MARGIN, WORLD_W - MARGIN]);
 
-    ctx.save();
-    ctx.translate(camera.x, camera.y);
-    ctx.scale(camera.zoom, camera.zoom);
+    // Main group for all content (will be transformed by zoom)
+    const mainGroup = svg.append('g');
 
-    // -- Background --
-    ctx.fillStyle = colors.bg;
-    ctx.fillRect(-200, -200, WORLD_W + 400, WORLD_H + 400);
+    // Set up zoom behavior
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([1, 4])
+      .translateExtent([
+        [0, 0],
+        [WORLD_W, WORLD_H],
+      ])
+      .on('zoom', (event) => {
+        mainGroup.attr('transform', event.transform.toString());
+      });
 
-    // -- AI Winter shaded regions --
-    for (const winter of AI_WINTERS) {
-      const x1 = yearToX(winter.startYear);
-      const x2 = yearToX(winter.endYear);
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.10)';
-      ctx.fillRect(x1, 20, x2 - x1, WORLD_H - 40);
+    svg.call(zoom as unknown as (selection: typeof svg) => void);
 
-      // Border
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 4]);
-      ctx.strokeRect(x1, 20, x2 - x1, WORLD_H - 40);
-      ctx.setLineDash([]);
+    // Fit to view on mount
+    const initialScale = Math.min(displayW / WORLD_W, displayH / WORLD_H);
+    const initialTransform = d3.zoomIdentity.scale(initialScale);
+    svg.call(zoom.transform as unknown as (selection: typeof svg, transform: d3.ZoomTransform) => void, initialTransform);
+
+    // Background
+    mainGroup
+      .append('rect')
+      .attr('x', -200)
+      .attr('y', -200)
+      .attr('width', WORLD_W + 400)
+      .attr('height', WORLD_H + 400)
+      .attr('class', 'fill-background');
+
+    // AI Winter shaded regions
+    const winterGroup = mainGroup.append('g').attr('class', 'ai-winters');
+
+    AI_WINTERS.forEach((winter) => {
+      const x1 = xScale(winter.startYear);
+      const x2 = xScale(winter.endYear);
+      const winterWidth = x2 - x1;
+
+      // Shaded region
+      winterGroup
+        .append('rect')
+        .attr('x', x1)
+        .attr('y', 20)
+        .attr('width', winterWidth)
+        .attr('height', WORLD_H - 40)
+        .attr('fill', 'rgba(239, 68, 68, 0.10)');
+
+      // Dashed border
+      winterGroup
+        .append('rect')
+        .attr('x', x1)
+        .attr('y', 20)
+        .attr('width', winterWidth)
+        .attr('height', WORLD_H - 40)
+        .attr('fill', 'none')
+        .attr('stroke', 'rgba(239, 68, 68, 0.25)')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '6,4');
 
       // Label
-      drawText(ctx, winter.label, (x1 + x2) / 2, 40, {
-        color: 'rgba(239, 68, 68, 0.6)',
-        font: 'italic 12px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-    }
+      winterGroup
+        .append('text')
+        .attr('x', (x1 + x2) / 2)
+        .attr('y', 40)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('fill', 'rgba(239, 68, 68, 0.6)')
+        .attr('font-size', '12px')
+        .attr('font-style', 'italic')
+        .attr('class', 'font-sans')
+        .text(winter.label);
+    });
 
-    // -- Timeline line --
-    drawLine(ctx, yearToX(YEAR_MIN), TIMELINE_Y, yearToX(YEAR_MAX), TIMELINE_Y, colors.border, 2);
+    // Timeline line
+    mainGroup
+      .append('line')
+      .attr('x1', xScale(YEAR_MIN))
+      .attr('y1', TIMELINE_Y)
+      .attr('x2', xScale(YEAR_MAX))
+      .attr('y2', TIMELINE_Y)
+      .attr('class', 'stroke-border')
+      .attr('stroke-width', 2);
 
-    // -- Year markers (every 10 years + 2025) --
+    // Year markers
     const yearMarks: number[] = [];
     for (let y = 1940; y <= 2020; y += 10) yearMarks.push(y);
     yearMarks.push(2025);
 
-    for (const year of yearMarks) {
-      const x = yearToX(year);
-      drawLine(ctx, x, TIMELINE_Y - 8, x, TIMELINE_Y + 8, colors.secondary, 1);
-      drawText(ctx, String(year), x, TIMELINE_Y + 22, {
-        color: colors.secondary,
-        font: '11px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-    }
+    const yearMarkersGroup = mainGroup.append('g').attr('class', 'year-markers');
 
-    // -- Milestones --
-    for (let i = 0; i < MILESTONES.length; i++) {
-      const m = MILESTONES[i];
-      const cx = yearToX(m.year);
+    yearMarks.forEach((year) => {
+      const x = xScale(year);
+
+      // Tick line
+      yearMarkersGroup
+        .append('line')
+        .attr('x1', x)
+        .attr('y1', TIMELINE_Y - 8)
+        .attr('x2', x)
+        .attr('y2', TIMELINE_Y + 8)
+        .attr('class', 'stroke-muted-foreground')
+        .attr('stroke-width', 1);
+
+      // Year label
+      yearMarkersGroup
+        .append('text')
+        .attr('x', x)
+        .attr('y', TIMELINE_Y + 22)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-muted-foreground font-sans')
+        .attr('font-size', '11px')
+        .text(String(year));
+    });
+
+    // Milestones
+    const milestonesGroup = mainGroup.append('g').attr('class', 'milestones');
+
+    MILESTONES.forEach((milestone, i) => {
+      const cx = xScale(milestone.year);
       const above = i % 2 === 0;
-      const pos = cardPositions.current[i];
-      const isHovered = hoverIndex === i;
+      const cardX = cx - CARD_W / 2;
+      const cardY = above ? TIMELINE_Y - 50 - CARD_H : TIMELINE_Y + 50;
+
+      const milestoneGroup = milestonesGroup.append('g').attr('class', `milestone milestone-${i}`);
 
       // Connector line from timeline dot to card
-      const connectorEndY = above ? pos.y + pos.h : pos.y;
-      drawLine(ctx, cx, TIMELINE_Y, cx, connectorEndY, colors.border, 1);
+      const connectorEndY = above ? cardY + CARD_H : cardY;
+      milestoneGroup
+        .append('line')
+        .attr('x1', cx)
+        .attr('y1', TIMELINE_Y)
+        .attr('x2', cx)
+        .attr('y2', connectorEndY)
+        .attr('class', 'stroke-border connector-line')
+        .attr('stroke-width', 1);
 
       // Timeline dot
-      const dotRadius = isHovered ? 7 : 5;
-      drawCircle(ctx, cx, TIMELINE_Y, dotRadius, isHovered ? colors.primary : colors.text, colors.bg);
+      milestoneGroup
+        .append('circle')
+        .attr('cx', cx)
+        .attr('cy', TIMELINE_Y)
+        .attr('r', 5)
+        .attr('class', 'fill-foreground timeline-dot')
+        .attr('stroke-width', 2);
 
-      // Card
-      const cardFill = isHovered ? colors.primary : colors.surface;
-      const cardStroke = isHovered ? colors.primary : colors.border;
-      drawRoundRect(ctx, pos.x, pos.y, pos.w, pos.h, 6, cardFill, cardStroke);
+      // Card background
+      milestoneGroup
+        .append('rect')
+        .attr('x', cardX)
+        .attr('y', cardY)
+        .attr('width', CARD_W)
+        .attr('height', CARD_H)
+        .attr('rx', 6)
+        .attr('class', 'fill-card stroke-border card-bg')
+        .attr('stroke-width', 1);
 
-      // Card text
-      const textColor = isHovered ? colors.bg : colors.text;
-      const subtitleColor = isHovered ? colors.bg : colors.secondary;
+      // Card text - year
+      milestoneGroup
+        .append('text')
+        .attr('x', cx)
+        .attr('y', cardY + 16)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-muted-foreground font-sans card-year')
+        .attr('font-size', '11px')
+        .attr('font-weight', 'bold')
+        .text(String(milestone.year));
 
-      drawText(ctx, String(m.year), pos.x + pos.w / 2, pos.y + 16, {
-        color: subtitleColor,
-        font: 'bold 11px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-      drawText(ctx, m.title, pos.x + pos.w / 2, pos.y + 34, {
-        color: textColor,
-        font: 'bold 13px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-      drawText(ctx, m.description, pos.x + pos.w / 2, pos.y + 52, {
-        color: subtitleColor,
-        font: '10px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-    }
+      // Card text - title
+      milestoneGroup
+        .append('text')
+        .attr('x', cx)
+        .attr('y', cardY + 34)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-foreground font-sans card-title')
+        .attr('font-size', '13px')
+        .attr('font-weight', 'bold')
+        .text(milestone.title);
 
-    // -- Hover tooltip --
+      // Card text - description
+      milestoneGroup
+        .append('text')
+        .attr('x', cx)
+        .attr('y', cardY + 52)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-muted-foreground font-sans card-description')
+        .attr('font-size', '10px')
+        .text(milestone.description);
+
+      // Interactive overlay for hover
+      milestoneGroup
+        .append('rect')
+        .attr('x', cardX)
+        .attr('y', cardY)
+        .attr('width', CARD_W)
+        .attr('height', CARD_H)
+        .attr('fill', 'transparent')
+        .attr('cursor', 'pointer')
+        .on('mouseenter', () => setHoverIndex(i))
+        .on('mouseleave', () => setHoverIndex(null));
+
+      // Also make the dot interactive
+      milestoneGroup
+        .append('circle')
+        .attr('cx', cx)
+        .attr('cy', TIMELINE_Y)
+        .attr('r', 10)
+        .attr('fill', 'transparent')
+        .attr('cursor', 'pointer')
+        .on('mouseenter', () => setHoverIndex(i))
+        .on('mouseleave', () => setHoverIndex(null));
+    });
+  }, [displayW, displayH]);
+
+  // Update hover styles
+  useEffect(() => {
+    const svg = d3.select(svgRef.current);
+
+    // Reset all milestones
+    svg.selectAll('.milestone').each(function () {
+      const group = d3.select(this);
+      group.select('.timeline-dot').attr('r', 5).attr('class', 'fill-foreground timeline-dot').attr('stroke', 'none');
+      group.select('.card-bg').attr('class', 'fill-card stroke-border card-bg');
+      group.select('.card-year').attr('class', 'fill-muted-foreground font-sans card-year');
+      group.select('.card-title').attr('class', 'fill-foreground font-sans card-title');
+      group.select('.card-description').attr('class', 'fill-muted-foreground font-sans card-description');
+    });
+
+    // Update hovered milestone
     if (hoverIndex !== null) {
-      const m = MILESTONES[hoverIndex];
-      const pos = cardPositions.current[hoverIndex];
-      const above = hoverIndex % 2 === 0;
+      const hoveredGroup = svg.select(`.milestone-${hoverIndex}`);
+      hoveredGroup.select('.timeline-dot').attr('r', 7).attr('class', 'fill-primary timeline-dot').attr('stroke', 'hsl(var(--background))');
+      hoveredGroup.select('.card-bg').attr('class', 'fill-primary stroke-primary card-bg');
+      hoveredGroup.select('.card-year').attr('class', 'fill-primary-foreground font-sans card-year');
+      hoveredGroup.select('.card-title').attr('class', 'fill-primary-foreground font-sans card-title');
+      hoveredGroup.select('.card-description').attr('class', 'fill-primary-foreground font-sans card-description');
+    }
+  }, [hoverIndex]);
 
-      const tooltipX = pos.x + pos.w / 2 - TOOLTIP_W / 2;
-      const tooltipY = above ? pos.y - TOOLTIP_H - 10 : pos.y + pos.h + 10;
+  // Render tooltip
+  useEffect(() => {
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('.tooltip').remove();
+
+    if (hoverIndex !== null) {
+      const milestone = MILESTONES[hoverIndex];
+      const xScale = d3.scaleLinear().domain([YEAR_MIN, YEAR_MAX]).range([MARGIN, WORLD_W - MARGIN]);
+      const cx = xScale(milestone.year);
+      const above = hoverIndex % 2 === 0;
+      const cardX = cx - CARD_W / 2;
+      const cardY = above ? TIMELINE_Y - 50 - CARD_H : TIMELINE_Y + 50;
+
+      const tooltipX = cardX + CARD_W / 2 - TOOLTIP_W / 2;
+      const tooltipY = above ? cardY - TOOLTIP_H - 10 : cardY + CARD_H + 10;
 
       // Clamp to world bounds
       const clampedX = Math.max(10, Math.min(WORLD_W - TOOLTIP_W - 10, tooltipX));
       const clampedY = Math.max(10, Math.min(WORLD_H - TOOLTIP_H - 10, tooltipY));
 
-      // Shadow
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.15)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 4;
-      drawRoundRect(ctx, clampedX, clampedY, TOOLTIP_W, TOOLTIP_H, 8, colors.surface, colors.primary);
-      ctx.restore();
+      const tooltipGroup = svg.append('g').attr('class', 'tooltip').style('pointer-events', 'none');
 
-      drawText(ctx, String(m.year), clampedX + TOOLTIP_W / 2, clampedY + 18, {
-        color: colors.primary,
-        font: 'bold 14px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
-      drawText(ctx, m.title, clampedX + TOOLTIP_W / 2, clampedY + 38, {
-        color: colors.text,
-        font: 'bold 14px var(--font-sans, system-ui, sans-serif)',
-        align: 'center',
-        baseline: 'middle',
-      });
+      // Shadow effect using filter
+      const defs = svg.select('defs').empty() ? svg.append('defs') : svg.select('defs');
+      const filterId = 'tooltip-shadow';
+      if (defs.select(`#${filterId}`).empty()) {
+        const filter = defs.append('filter').attr('id', filterId).attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+        filter.append('feGaussianBlur').attr('in', 'SourceAlpha').attr('stdDeviation', 3);
+        filter.append('feOffset').attr('dx', 0).attr('dy', 2).attr('result', 'offsetblur');
+        filter.append('feComponentTransfer').append('feFuncA').attr('type', 'linear').attr('slope', 0.3);
+        const feMerge = filter.append('feMerge');
+        feMerge.append('feMergeNode');
+        feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+      }
 
-      // Word-wrap description in tooltip
-      const desc = m.description;
+      // Tooltip background
+      tooltipGroup
+        .append('rect')
+        .attr('x', clampedX)
+        .attr('y', clampedY)
+        .attr('width', TOOLTIP_W)
+        .attr('height', TOOLTIP_H)
+        .attr('rx', 8)
+        .attr('class', 'fill-card stroke-primary')
+        .attr('stroke-width', 2)
+        .attr('filter', `url(#${filterId})`);
+
+      // Tooltip text - year
+      tooltipGroup
+        .append('text')
+        .attr('x', clampedX + TOOLTIP_W / 2)
+        .attr('y', clampedY + 18)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-primary font-sans')
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .text(String(milestone.year));
+
+      // Tooltip text - title
+      tooltipGroup
+        .append('text')
+        .attr('x', clampedX + TOOLTIP_W / 2)
+        .attr('y', clampedY + 38)
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'middle')
+        .attr('class', 'fill-foreground font-sans')
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .text(milestone.title);
+
+      // Tooltip text - description (word-wrapped)
+      const desc = milestone.description;
       const maxChars = 34;
       if (desc.length <= maxChars) {
-        drawText(ctx, desc, clampedX + TOOLTIP_W / 2, clampedY + 58, {
-          color: colors.secondary,
-          font: '12px var(--font-sans, system-ui, sans-serif)',
-          align: 'center',
-          baseline: 'middle',
-        });
+        tooltipGroup
+          .append('text')
+          .attr('x', clampedX + TOOLTIP_W / 2)
+          .attr('y', clampedY + 58)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('class', 'fill-muted-foreground font-sans')
+          .attr('font-size', '12px')
+          .text(desc);
       } else {
         const words = desc.split(' ');
         let line1 = '';
@@ -258,70 +415,34 @@ export default function AITimelineViz() {
             line2 = (line2 + ' ' + word).trim();
           }
         }
-        drawText(ctx, line1, clampedX + TOOLTIP_W / 2, clampedY + 54, {
-          color: colors.secondary,
-          font: '12px var(--font-sans, system-ui, sans-serif)',
-          align: 'center',
-          baseline: 'middle',
-        });
-        drawText(ctx, line2, clampedX + TOOLTIP_W / 2, clampedY + 70, {
-          color: colors.secondary,
-          font: '12px var(--font-sans, system-ui, sans-serif)',
-          align: 'center',
-          baseline: 'middle',
-        });
+        tooltipGroup
+          .append('text')
+          .attr('x', clampedX + TOOLTIP_W / 2)
+          .attr('y', clampedY + 54)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('class', 'fill-muted-foreground font-sans')
+          .attr('font-size', '12px')
+          .text(line1);
+        tooltipGroup
+          .append('text')
+          .attr('x', clampedX + TOOLTIP_W / 2)
+          .attr('y', clampedY + 70)
+          .attr('text-anchor', 'middle')
+          .attr('dominant-baseline', 'middle')
+          .attr('class', 'fill-muted-foreground font-sans')
+          .attr('font-size', '12px')
+          .text(line2);
       }
     }
-
-    ctx.restore();
-  }, [displayW, displayH, camera, hoverIndex]);
-
-  // Hover detection
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const sx = (e.clientX - rect.left) * (canvas.width / dpr / rect.width);
-      const sy = (e.clientY - rect.top) * (canvas.height / dpr / rect.height);
-      const { x: wx, y: wy } = screenToWorld(sx, sy);
-
-      let found: number | null = null;
-      for (let i = 0; i < MILESTONES.length; i++) {
-        const pos = cardPositions.current[i];
-        if (wx >= pos.x && wx <= pos.x + pos.w && wy >= pos.y && wy <= pos.y + pos.h) {
-          found = i;
-          break;
-        }
-        // Also check the dot on the timeline
-        const dotX = yearToX(MILESTONES[i].year);
-        const dist = Math.hypot(wx - dotX, wy - TIMELINE_Y);
-        if (dist <= 10) {
-          found = i;
-          break;
-        }
-      }
-      setHoverIndex(found);
-    },
-    [screenToWorld],
-  );
-
-  const handleMouseLeave = useCallback(() => {
-    setHoverIndex(null);
-  }, []);
+  }, [hoverIndex]);
 
   return (
     <div className="rounded-lg border bg-card p-4 my-6 overflow-hidden" ref={containerRef}>
       <div className="text-sm font-medium text-muted-foreground mb-2">
         History of AI (1943 - 2025) &mdash; drag to pan, scroll to zoom
       </div>
-      <canvas
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ cursor: hoverIndex !== null ? 'pointer' : 'grab' }}
-      />
+      <svg ref={svgRef} className="w-full" style={{ cursor: hoverIndex !== null ? 'pointer' : 'grab' }} />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import ContentOutline from '../components/ContentOutline.tsx';
 import { useTheme } from '../hooks/useTheme.ts';
 import { useScrollSpy } from '../hooks/useScrollSpy.ts';
 import { useSectionProgress } from '../hooks/useSectionProgress.ts';
+import { useActiveLessonSection, clearActiveLessonSection } from '../hooks/useActiveLessonSection.ts';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
 
 export default function AppShell() {
@@ -18,7 +19,16 @@ export default function AppShell() {
 
   // Extract active topic from pathname: "/topic-01" -> "topic-01"
   const activeTopic = location.pathname.slice(1) || 'welcome';
-  const activeSection = useScrollSpy(mainRef);
+  const scrollSpySection = useScrollSpy(mainRef);
+  const stepperSection = useActiveLessonSection();
+
+  // Clear stale stepper section when topic changes (stepper will re-set on mount)
+  useEffect(() => {
+    clearActiveLessonSection();
+  }, [activeTopic]);
+
+  // Stepper pages report via useActiveLessonSection; scroll spy works for legacy scroll pages
+  const activeSection = stepperSection || scrollSpySection;
 
   // Get section IDs for current topic
   const sectionIds = useMemo(() => {

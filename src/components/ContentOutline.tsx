@@ -30,7 +30,7 @@ export default function ContentOutline({
   };
 
   // Check if this topic has a lab section
-  const hasLab = topic.sections.some((s) => s.id === 'section-lab');
+  const hasLab = topic.sections.some((s) => s.id === 'lab');
 
   return (
     <nav className="sticky top-6">
@@ -41,7 +41,7 @@ export default function ContentOutline({
         {topic.sections.map((section) => {
           const isActive = activeSection === section.id;
           const isVisited = visitedSections.has(section.id);
-          const isLab = section.id === 'section-lab';
+          const isLab = section.id === 'lab';
 
           return (
             <li key={section.id}>

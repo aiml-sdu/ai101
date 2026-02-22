@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Lock, BookOpen } from 'lucide-react';
+import { ChevronRight, Lock, Eye } from 'lucide-react';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import {
@@ -27,6 +27,8 @@ interface SideNavProps {
   activeSection: string;
   visitedSections?: Set<string>;
 }
+
+const reviewMode = !!import.meta.env.VITE_REVIEW_MODE;
 
 export default function SideNav({ activeTopic, activeSection, visitedSections }: SideNavProps) {
   const navigate = useNavigate();
@@ -83,7 +85,7 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
               const isExpanded = expandedTopics.has(topic.id);
               const hasSections = topic.sections.length > 0;
 
-              if (topic.locked) {
+              if (topic.locked && !reviewMode) {
                 return (
                   <SidebarMenuItem key={topic.id}>
                     <SidebarMenuButton className="opacity-50 cursor-not-allowed pointer-events-none">
@@ -97,30 +99,20 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
 
               if (!hasSections) {
                 return (
-                  <React.Fragment key={topic.id}>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        onClick={() => handleTopicClick(topic.id)}
-                      >
-                        {topic.number > 0 && (
-                          <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
-                        )}
-                        <span>{topic.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    {topic.id === 'welcome' && (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton
-                          isActive={activeTopic === 'study'}
-                          onClick={() => { navigate('/study'); closeMobileSidebar(); }}
-                        >
-                          <BookOpen className="size-4" />
-                          <span>Study Hub</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )}
-                  </React.Fragment>
+                  <SidebarMenuItem key={topic.id}>
+                    <SidebarMenuButton
+                      isActive={isActive}
+                      onClick={() => handleTopicClick(topic.id)}
+                    >
+                      {topic.number > 0 && (
+                        <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
+                      )}
+                      <span>{topic.title}</span>
+                      {topic.locked && reviewMode && (
+                        <Eye className="size-3 text-amber-500" />
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 );
               }
 
@@ -141,6 +133,9 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
                           <span className="text-muted-foreground font-mono text-xs">{topic.number}.</span>
                         )}
                         <span className="flex-1">{topic.title}</span>
+                        {topic.locked && reviewMode && (
+                          <Eye className="size-3 text-amber-500" />
+                        )}
                         {(() => {
                           const tp = progress.get(topic.id);
                           return tp && tp.visited > 0 ? (

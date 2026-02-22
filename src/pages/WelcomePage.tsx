@@ -1,164 +1,282 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Lock } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
+import { NAV_TOPICS } from '@/data/nav-topics';
+import { useCallback, useEffect, useState } from 'react';
 
-interface TopicCard {
-  id: string;
-  number: number;
-  title: string;
-  description: string;
-  ready: boolean;
+const reviewMode = !!import.meta.env.VITE_REVIEW_MODE;
+
+// Derive topics from the single source of truth
+const ALL_TOPICS = NAV_TOPICS.filter((t) => t.number > 0);
+
+const DESCRIPTIONS: Record<string, string> = {
+  'topic-01': 'What AI is, its history, and where it stands today',
+  'topic-02': 'How agents sense, think, and act in their environments',
+  'topic-03': 'BFS, DFS, and uniform-cost search on graph problems',
+  'topic-04': 'Heuristics, greedy best-first, and A* search',
+  'topic-05': 'Hill climbing, simulated annealing, and genetic algorithms',
+  'topic-06': 'Game playing, minimax, and alpha-beta pruning',
+  'topic-07': 'CSPs, backtracking, and constraint propagation',
+  'topic-08': 'Random variables, Bayes\' rule, and joint distributions',
+  'topic-09': 'Probabilistic graphical models and inference',
+  'topic-10': 'Temporal models and sequence prediction',
+  'topic-11': 'Supervised and unsupervised learning fundamentals',
+  'topic-12': 'Linear and polynomial regression models',
+  'topic-13': 'K-means, hierarchical clustering, and course review',
+};
+
+const NODE_SIZE = 64;
+const ROW_HEIGHT = 160;
+const TEXT_OFFSET = 44; // gap from circle edge to text
+
+function useIsSmall() {
+  const [small, setSmall] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    setSmall(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setSmall(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return small;
 }
 
-const TOPICS: TopicCard[] = [
-  { id: 'topic-01', number: 1, title: 'Introduction to AI', description: 'What AI is, its history, and where it stands today', ready: true },
-  { id: 'topic-02', number: 2, title: 'Intelligent Agents', description: 'How agents sense, think, and act in their environments', ready: true },
-  { id: 'topic-03', number: 3, title: 'Solving Problems by Searching', description: 'BFS, DFS, and uniform-cost search on graph problems', ready: true },
-  { id: 'topic-04', number: 4, title: 'Informed Search', description: 'Heuristics, greedy best-first, and A* search', ready: false },
-  { id: 'topic-05', number: 5, title: 'Local Search & Optimization', description: 'Hill climbing, simulated annealing, and genetic algorithms', ready: false },
-  { id: 'topic-06', number: 6, title: 'Constraint Satisfaction Problems', description: 'Modeling and solving CSPs with backtracking and arc consistency', ready: false },
-  { id: 'topic-07', number: 7, title: 'Adversarial Search', description: 'Minimax, alpha-beta pruning, and game-playing agents', ready: false },
-  { id: 'topic-08', number: 8, title: 'Logical Agents', description: 'Propositional logic, inference, and knowledge-based agents', ready: false },
-  { id: 'topic-09', number: 9, title: 'Probability & Bayesian Networks', description: 'Reasoning under uncertainty with probabilistic models', ready: false },
-  { id: 'topic-10', number: 10, title: 'Machine Learning Fundamentals', description: 'Supervised learning, decision trees, and model evaluation', ready: false },
-  { id: 'topic-11', number: 11, title: 'Neural Networks', description: 'Perceptrons, backpropagation, and deep learning basics', ready: false },
-  { id: 'topic-12', number: 12, title: 'Reinforcement Learning', description: 'Reward-driven agents, Q-learning, and exploration vs. exploitation', ready: false },
-  { id: 'topic-13', number: 13, title: 'Clustering', description: 'Unsupervised learning, k-means, and hierarchical clustering', ready: false },
-];
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.4 },
-  }),
-};
+// Snake: center → right → center → left → repeat
+function getOffset(i: number): number {
+  const phase = i % 4;
+  return phase === 0 ? 0 : phase === 1 ? 1 : phase === 2 ? 0 : -1;
+}
 
 export default function WelcomePage() {
   const progress = useCourseProgress();
+  const isSmall = useIsSmall();
+  const AMP = isSmall ? 40 : 100;
 
-  // Overall stats across ready topics
   let totalVisited = 0;
   let totalSections = 0;
-  for (const topic of TOPICS) {
-    if (!topic.ready) continue;
-    const tp = progress.get(topic.id);
+  for (const t of NAV_TOPICS) {
+    if (t.locked || t.sections.length === 0) continue;
+    const tp = progress.get(t.id);
     if (tp) {
       totalVisited += tp.visited;
       totalSections += tp.total;
     }
   }
-  const overallPct = totalSections > 0 ? Math.round((totalVisited / totalSections) * 100) : 0;
+  const overallPct =
+    totalSections > 0 ? Math.round((totalVisited / totalSections) * 100) : 0;
+
+  const nodes = ALL_TOPICS.map((topic) => {
+    const accessible = !topic.locked || reviewMode;
+    const tp = accessible ? progress.get(topic.id) : undefined;
+    const isComplete = tp?.pct === 100;
+    const inProgress = !!(tp && tp.visited > 0 && !isComplete);
+    const offsetX = getOffset(topic.number - 1) * AMP;
+    const y = (topic.number - 1) * ROW_HEIGHT;
+    const textSide: 'left' | 'right' = (topic.number - 1) % 2 === 0 ? 'right' : 'left';
+    return { topic, accessible, tp, isComplete, inProgress, offsetX, y, textSide };
+  });
+
+  const containerHeight = (ALL_TOPICS.length - 1) * ROW_HEIGHT + NODE_SIZE;
+
+  // "Not released yet" popup state
+  const [tappedId, setTappedId] = useState<string | null>(null);
+  const handleLockedClick = useCallback((id: string) => {
+    setTappedId(id);
+    setTimeout(() => setTappedId(null), 1500);
+  }, []);
 
   return (
-    <div className="prose">
-      <section className="mb-10">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">AI101</h1>
-        <p className="text-xl text-muted-foreground mb-4">An Interactive Course in Artificial Intelligence</p>
-        <p className="text-muted-foreground">
-          A hands-on journey through the foundational ideas of AI, from search
-          algorithms and logical reasoning to machine learning and neural networks.
-          Each topic starts with a real-life scenario you already understand, then
-          builds toward the formal concepts and algorithms that power modern AI systems.
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Hero */}
+      <section className="text-center mb-6">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-2">AI101</h1>
+        <p className="text-lg text-muted-foreground mb-1">
+          An Interactive Course in Artificial Intelligence
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-3 max-w-md mx-auto leading-relaxed">
+          13 topics planned &middot; 3 available now. Built with Claude Opus 4.6.
+          <br />
+          Content reviewed and verified by TAs and Professor.
+          <br />
+          Bugs or feedback? Email{' '}
+          <a
+            href="mailto:phkon23@student.sdu.dk"
+            className="underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            phkon23@student.sdu.dk
+          </a>
         </p>
       </section>
 
-      <section className="mb-10">
-        <h2>How This Course Works</h2>
-        <p>
-          Every topic follows the same pattern: we begin with a concrete, everyday
-          example&mdash;planning a road trip, playing a board game, diagnosing a
-          problem&mdash;and use it to motivate the AI technique. Interactive
-          visualizations let you experiment with the algorithms in real time, and
-          quizzes check your understanding along the way.
-        </p>
-      </section>
-
-      <section>
-        <h2>Course Topics</h2>
-
-        {totalVisited > 0 && (
-          <div className="not-prose mb-6 rounded-lg border bg-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">
-                {totalVisited} of {totalSections} sections completed
-              </span>
-              <span className="text-sm text-muted-foreground">{overallPct}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: `${overallPct}%` }}
-              />
-            </div>
+      {/* Overall progress */}
+      {totalVisited > 0 && (
+        <div className="mb-8 rounded-lg border bg-card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground">
+              {totalVisited} of {totalSections} sections completed
+            </span>
+            <span className="text-sm text-muted-foreground">{overallPct}%</span>
           </div>
-        )}
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${overallPct}%` }}
+            />
+          </div>
+        </div>
+      )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 not-prose">
-          {TOPICS.map((topic, i) => {
-            const tp = topic.ready ? progress.get(topic.id) : undefined;
-            const isComplete = tp && tp.pct === 100;
-
-            const cardContent = (
-              <Card className={`p-4 h-full flex flex-col transition-all ${topic.ready ? 'hover:shadow-md hover:border-primary/30 cursor-pointer' : 'opacity-60 cursor-not-allowed'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-primary/60">{topic.number}</span>
-                  <div className="flex items-center gap-1.5">
-                    {!topic.ready && <Lock className="size-3.5 text-muted-foreground" />}
-                    {isComplete ? (
-                      <Badge variant="default" className="bg-green-600">
-                        <Check className="size-3 mr-1" /> Complete
-                      </Badge>
-                    ) : (
-                      <Badge variant={topic.ready ? 'default' : 'secondary'}>
-                        {topic.ready ? 'Ready' : 'Coming Soon'}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <h3 className="font-semibold mb-1 text-foreground">{topic.title}</h3>
-                <p className="text-sm text-muted-foreground flex-1">{topic.description}</p>
-                {tp && tp.visited > 0 && !isComplete && (
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">{tp.visited}/{tp.total} sections</span>
-                      <span className="text-xs text-muted-foreground">{tp.pct}%</span>
-                    </div>
-                    <div className="h-1 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-300"
-                        style={{ width: `${tp.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </Card>
-            );
-
+      {/* Winding path */}
+      <div className="relative" style={{ height: containerHeight }}>
+        {/* SVG connectors */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          viewBox={`${-(AMP + NODE_SIZE)} 0 ${(AMP + NODE_SIZE) * 2} ${containerHeight}`}
+          preserveAspectRatio="xMidYMin meet"
+          aria-hidden
+        >
+          {nodes.slice(0, -1).map((node, i) => {
+            const next = nodes[i + 1];
+            const x1 = node.offsetX;
+            const y1 = node.y + NODE_SIZE / 2;
+            const x2 = next.offsetX;
+            const y2 = next.y + NODE_SIZE / 2;
+            const midY = (y1 + y2) / 2;
             return (
-              <motion.div
-                key={topic.id}
-                custom={i}
-                initial="hidden"
-                animate="visible"
-                variants={cardVariants}
-              >
-                {topic.ready ? (
-                  <Link to={`/${topic.id}`} className="no-underline">
-                    {cardContent}
-                  </Link>
-                ) : (
-                  cardContent
-                )}
-              </motion.div>
+              <path
+                key={i}
+                d={`M ${x1} ${y1} Q ${x1} ${midY}, ${x2} ${y2}`}
+                fill="none"
+                className={next.accessible ? 'stroke-primary/40' : 'stroke-muted-foreground/30'}
+                strokeWidth={2.5}
+                strokeDasharray={next.accessible ? 'none' : '6 4'}
+              />
             );
           })}
-        </div>
-      </section>
+        </svg>
+
+        {/* Nodes — circle center anchored at (50% + offsetX, y + NODE_SIZE/2) */}
+        {nodes.map((node, i) => {
+          const { topic, accessible, tp, isComplete, inProgress, offsetX, y, textSide } = node;
+
+          const circleClasses = isComplete
+            ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+            : inProgress
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+              : accessible
+                ? 'border-2 border-primary bg-card text-primary shadow-md hover:shadow-lg hover:scale-105'
+                : 'border-2 border-muted bg-muted/50 text-muted-foreground';
+
+          const content = (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1, duration: 0.4, ease: 'easeOut' }}
+              className="relative"
+              style={{ width: NODE_SIZE, height: NODE_SIZE }}
+            >
+              {/* Pulse ring */}
+              {inProgress && (
+                <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
+              )}
+              {/* Progress arc */}
+              {inProgress && tp && (
+                <svg className="absolute -inset-1 pointer-events-none" viewBox="0 0 68 68" aria-hidden>
+                  <circle cx="34" cy="34" r="31" fill="none" className="stroke-muted" strokeWidth="3" />
+                  <circle
+                    cx="34" cy="34" r="31" fill="none"
+                    className="stroke-primary" strokeWidth="3" strokeLinecap="round"
+                    strokeDasharray={`${(tp.pct / 100) * 2 * Math.PI * 31} ${2 * Math.PI * 31}`}
+                    transform="rotate(-90 34 34)"
+                  />
+                </svg>
+              )}
+              {/* Circle */}
+              <div
+                className={`relative z-10 w-full h-full flex items-center justify-center rounded-full transition-all duration-300 ${circleClasses}`}
+              >
+                {isComplete ? (
+                  <Check className="size-6" strokeWidth={3} />
+                ) : !accessible ? (
+                  <Lock className="size-5" />
+                ) : (
+                  <span className="text-lg font-bold">{topic.number}</span>
+                )}
+              </div>
+
+              {/* Text label — absolutely positioned relative to circle */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-36 sm:w-44 hidden sm:block"
+                style={
+                  textSide === 'right'
+                    ? { left: NODE_SIZE + TEXT_OFFSET }
+                    : { right: NODE_SIZE + TEXT_OFFSET }
+                }
+              >
+                <div className={textSide === 'left' ? 'text-right' : 'text-left'}>
+                  <p className="text-sm font-semibold text-foreground leading-tight">
+                    {topic.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                    {DESCRIPTIONS[topic.id]}
+                  </p>
+                  {inProgress && tp && (
+                    <p className="text-xs text-primary mt-1">
+                      {tp.visited}/{tp.total} sections
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile text — below circle */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-40 text-center sm:hidden">
+                <p className="text-xs font-semibold text-foreground leading-tight">
+                  {topic.title}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                  {DESCRIPTIONS[topic.id]}
+                </p>
+              </div>
+            </motion.div>
+          );
+
+          return (
+            <div
+              key={topic.id}
+              className="absolute"
+              style={{
+                top: y,
+                left: `calc(50% + ${offsetX}px - ${NODE_SIZE / 2}px)`,
+              }}
+            >
+              {accessible ? (
+                <Link to={`/${topic.id}`} className="no-underline block">
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="appearance-none bg-transparent border-none p-0 relative"
+                  onClick={() => handleLockedClick(topic.id)}
+                >
+                  {content}
+                  {tappedId === topic.id && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute left-1/2 -translate-x-1/2 -top-10 z-20 whitespace-nowrap rounded-md bg-foreground text-background px-3 py-1.5 text-xs font-medium shadow-lg"
+                    >
+                      Not released yet :)
+                    </motion.div>
+                  )}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

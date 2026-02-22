@@ -1,5 +1,3 @@
-import { drawCircle, drawLine, drawText, getThemeColors } from '../../visualizations/canvas-utils.ts';
-
 // ---- Color constants ----
 export const COL_UNSEEN = '#9ca3af';
 export const COL_FRINGE = '#fbbf24';
@@ -47,60 +45,3 @@ export function getTreeNeighbors(node: string): { city: string; cost: number }[]
   return n.children.map((c) => ({ city: c, cost: 1 }));
 }
 
-// ---- Draw tree ----
-
-export interface DrawTreeOptions {
-  current?: string;
-  explored?: Set<string>;
-  fringeNodes?: Set<string>;
-  goalFound?: string;
-  path?: string[];
-  clickable?: Set<string>;
-}
-
-export function drawTree(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  options: DrawTreeOptions = {},
-) {
-  const colors = getThemeColors();
-  ctx.clearRect(0, 0, w, h);
-
-  const pathSet = new Set(options.path ?? []);
-
-  // Draw edges first
-  for (const node of Object.values(TREE_NODES)) {
-    for (const childId of node.children) {
-      const child = TREE_NODES[childId];
-      const onPath = pathSet.has(node.id) && pathSet.has(childId);
-      drawLine(ctx, node.x, node.y, child.x, child.y, onPath ? COL_PATH : colors.border, onPath ? 3 : 1.5);
-    }
-  }
-
-  // Draw nodes
-  for (const node of Object.values(TREE_NODES)) {
-    const r = 22;
-    let fill = COL_UNSEEN;
-
-    if (options.goalFound === node.id) fill = COL_GOAL;
-    else if (options.path && pathSet.has(node.id)) fill = COL_PATH;
-    else if (node.id === options.current) fill = COL_CURRENT;
-    else if (options.explored?.has(node.id)) fill = COL_EXPLORED;
-    else if (options.fringeNodes?.has(node.id)) fill = COL_FRINGE;
-
-    if (options.clickable?.has(node.id)) {
-      ctx.setLineDash([4, 4]);
-      drawCircle(ctx, node.x, node.y, r + 3, 'transparent', colors.primary);
-      ctx.setLineDash([]);
-    }
-
-    drawCircle(ctx, node.x, node.y, r, fill, colors.text);
-
-    const isGoal = node.id === TREE_GOAL;
-    drawText(ctx, node.id + (isGoal ? ' (G)' : ''), node.x, node.y, {
-      color: contrastText(fill),
-      font: 'bold 14px var(--font-sans, system-ui, sans-serif)',
-    });
-  }
-}

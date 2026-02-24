@@ -17,12 +17,11 @@ const DESCRIPTIONS: Record<string, string> = {
   'topic-05': 'Hill climbing, simulated annealing, and genetic algorithms',
   'topic-06': 'Game playing, minimax, and alpha-beta pruning',
   'topic-07': 'CSPs, backtracking, and constraint propagation',
-  'topic-08': 'Random variables, Bayes\' rule, and joint distributions',
-  'topic-09': 'Probabilistic graphical models and inference',
-  'topic-10': 'Temporal models and sequence prediction',
-  'topic-11': 'Supervised and unsupervised learning fundamentals',
-  'topic-12': 'Linear and polynomial regression models',
-  'topic-13': 'K-means, hierarchical clustering, and course review',
+  'topic-08': 'Probability, Bayes\' rule, and Bayesian Networks',
+  'topic-09': 'Temporal models and sequence prediction',
+  'topic-10': 'Supervised and unsupervised learning fundamentals',
+  'topic-11': 'Linear and polynomial regression models',
+  'topic-12': 'K-means, hierarchical clustering, and course review',
 };
 
 const NODE_SIZE = 64;
@@ -98,7 +97,7 @@ export default function WelcomePage() {
           An Interactive Course in Artificial Intelligence
         </p>
         <p className="text-xs text-muted-foreground/70 mt-3 max-w-md mx-auto leading-relaxed">
-          13 topics planned &middot; 3 available now. Built with Claude Opus 4.6.
+          12 topics planned &middot; 3 available now. Built with Claude Opus 4.6.
           <br />
           Content reviewed and verified by TAs and Professor.
           <br />

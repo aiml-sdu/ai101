@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Lock } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import { NAV_TOPICS } from '@/data/nav-topics';
 import { useCallback, useEffect, useState } from 'react';
-
-const reviewMode = !!import.meta.env.VITE_REVIEW_MODE;
 
 // Derive topics from the single source of truth
 const ALL_TOPICS = NAV_TOPICS.filter((t) => t.number > 0);
@@ -49,9 +48,13 @@ function getOffset(i: number): number {
 }
 
 export default function WelcomePage() {
+  const { isSignedIn } = useAuth();
   const progress = useCourseProgress();
   const isSmall = useIsSmall();
   const AMP = isSmall ? 40 : 100;
+
+  // Review mode: enabled if user is signed in OR if VITE_REVIEW_MODE env var is set
+  const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
 
   let totalVisited = 0;
   let totalSections = 0;

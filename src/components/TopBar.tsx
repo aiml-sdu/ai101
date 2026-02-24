@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import ThemeToggle from './ThemeToggle.tsx';
 import NavSearch from './NavSearch.tsx';
@@ -15,8 +16,20 @@ export default function TopBar({ theme, onThemeToggle }: TopBarProps) {
       <SidebarTrigger />
       <span className="font-semibold text-lg">AI101</span>
       <div className="flex-1" />
-      <XpBadge />
+      <SignedIn>
+        <XpBadge />
+      </SignedIn>
       <NavSearch />
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+            Sign In
+          </button>
+        </SignInButton>
+      </SignedOut>
+      <SignedIn>
+        <UserButton afterSignOutUrl="/" />
+      </SignedIn>
       <ThemeToggle theme={theme} onToggle={onThemeToggle} />
     </div>
   );

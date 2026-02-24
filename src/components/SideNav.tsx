@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Lock, Eye } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import {
@@ -28,12 +29,14 @@ interface SideNavProps {
   visitedSections?: Set<string>;
 }
 
-const reviewMode = !!import.meta.env.VITE_REVIEW_MODE;
-
 export default function SideNav({ activeTopic, activeSection, visitedSections }: SideNavProps) {
+  const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const progress = useCourseProgress();
   const { isMobile, setOpenMobile } = useSidebar();
+
+  // Review mode: enabled if user is signed in OR if VITE_REVIEW_MODE env var is set
+  const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(
     () => new Set(activeTopic ? [activeTopic] : []),
   );

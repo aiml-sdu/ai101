@@ -78,8 +78,14 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-05',
     number: 5,
     title: 'Local Search',
-    locked: true,
-    sections: [],
+    sections: [
+      { id: 'motivation', number: '5.1', title: 'Beyond Search Trees' },
+      { id: 'hill-climb', number: '5.2', title: 'Hill Climbing' },
+      { id: 'sa', number: '5.3', title: 'Simulated Annealing' },
+      { id: 'ga', number: '5.4', title: 'Genetic Algorithms' },
+      { id: 'ga-practice', number: '5.5', title: 'GA in Practice' },
+      { id: 'lab', number: 'Lab', title: 'Lab 4' },
+    ],
   },
   {
     id: 'topic-06',

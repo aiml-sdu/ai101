@@ -8,6 +8,7 @@ const Topic01IntroPage = lazy(() => import('./pages/Topic01IntroPage.tsx'));
 const Topic02AgentsPage = lazy(() => import('./pages/Topic02AgentsPage.tsx'));
 const Topic03UninformedPage = lazy(() => import('./pages/Topic03UninformedPage.tsx'));
 const Topic04InformedPage = lazy(() => import('./pages/Topic04InformedPage.tsx'));
+const Topic05LocalPage = lazy(() => import('./pages/Topic05LocalPage.tsx'));
 
 function NotReleasedPage() {
   const navigate = useNavigate();
@@ -72,6 +73,14 @@ const router = createHashRouter([
         element: (
           <Suspense fallback={null}>
             <Topic04InformedPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'topic-05',
+        element: (
+          <Suspense fallback={null}>
+            <Topic05LocalPage />
           </Suspense>
         ),
       },

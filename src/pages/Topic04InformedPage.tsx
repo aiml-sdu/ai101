@@ -298,6 +298,13 @@ h_SLD(Bucharest) = 0`} />
               Consistency implies admissibility. If h is consistent, f-values along any path
               are non-decreasing, so A* never re-expands a node.
             </p>
+            <p>
+              Use the Romania map below as a reference. The checker lets you verify
+              whether the straight-line heuristic values are admissible for each city.
+            </p>
+            <Suspense fallback={<VizLoading />}>
+              <D3RomaniaMap static />
+            </Suspense>
             <Suspense fallback={<VizLoading />}>
               <AdmissibilityChecker />
             </Suspense>
@@ -380,7 +387,7 @@ h_SLD(Bucharest) = 0`} />
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              Draw walls on the grid and run BFS, Greedy, or A* side by side. Notice
+              Draw walls on the grid and run BFS, Greedy, or A*. Notice
               how each algorithm trades off exploration vs. optimality.
             </p>
             <Suspense fallback={<VizLoading />}>

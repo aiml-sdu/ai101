@@ -209,6 +209,52 @@ function drawScene(
 // Component
 // ---------------------------------------------------------------------------
 
+const COMPARE_ALGOS: { key: AlgoChoice; label: string }[] = [
+  { key: 'bfs', label: 'BFS' },
+  { key: 'astar', label: 'A*' },
+  { key: 'greedy', label: 'Greedy' },
+];
+
+interface CompareResult {
+  step: SearchStep | null;
+  stats: { visited: number; pathLen: number } | null;
+}
+
+function CompareCanvas({
+  grid, start, end, step, label, stats, width,
+}: {
+  grid: CellType[][]; start: Cell; end: Cell;
+  step: SearchStep | null; label: string;
+  stats: { visited: number; pathLen: number } | null;
+  width: number;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const h = Math.round(width * (WORLD_H / WORLD_W));
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || width <= 0) return;
+    const ctx = setupCanvas(canvas, width, h);
+    const scale = width / WORLD_W;
+    ctx.save();
+    ctx.scale(scale, scale);
+    drawScene(ctx, grid, start, end, step);
+    ctx.restore();
+  }, [grid, start, end, step, width, h]);
+
+  return (
+    <div style={{ minWidth: 200 }}>
+      <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '4px', textAlign: 'center' }}>{label}</div>
+      <canvas ref={ref} style={{ borderRadius: '6px', display: 'block', width: '100%' }} />
+      {stats && (
+        <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', textAlign: 'center', marginTop: '4px' }}>
+          Visited: {stats.visited} &middot; Path: {stats.pathLen || '—'}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function makeGrid(): CellType[][] {
   return Array.from({ length: ROWS }, () =>
     Array.from({ length: COLS }, () => 'empty' as CellType),
@@ -233,10 +279,18 @@ export default function PathfindingGridViz() {
   const [algo, setAlgo] = useState<AlgoChoice>('astar');
   const [searchStep, setSearchStep] = useState<SearchStep | null>(null);
   const [running, setRunning] = useState(false);
+  const [delay, setDelay] = useState(20);
   const [drawing, setDrawing] = useState(false);
   const stepsRef = useRef<SearchStep[]>([]);
   const animRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [stats, setStats] = useState<{ visited: number; pathLen: number } | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareResults, setCompareResults] = useState<Record<AlgoChoice, CompareResult>>({
+    bfs: { step: null, stats: null },
+    astar: { step: null, stats: null },
+    greedy: { step: null, stats: null },
+  });
+  const compareAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (displayW > 0 && !fitDoneRef.current) {
@@ -344,23 +398,100 @@ export default function PathfindingGridViz() {
       }
       setSearchStep(steps[idx]);
       idx++;
-    }, 20);
-  }, [running, grid, start, end, algo]);
+    }, delay);
+  }, [running, grid, start, end, algo, delay]);
+
+  const clearCompare = useCallback(() => {
+    if (compareAnimRef.current) clearInterval(compareAnimRef.current);
+    setCompareMode(false);
+    setCompareResults({
+      bfs: { step: null, stats: null },
+      astar: { step: null, stats: null },
+      greedy: { step: null, stats: null },
+    });
+  }, []);
+
+  const handleCompare = useCallback(() => {
+    if (running) return;
+    // Clear single-run state
+    if (animRef.current) clearInterval(animRef.current);
+    setSearchStep(null);
+    setStats(null);
+
+    // Pre-compute all 3 algo step arrays
+    const allSteps: Record<AlgoChoice, SearchStep[]> = { bfs: [], astar: [], greedy: [] };
+    for (const a of COMPARE_ALGOS) {
+      for (const step of gridSearch(grid, start, end, a.key)) {
+        allSteps[a.key].push(step);
+      }
+    }
+
+    const maxLen = Math.max(...COMPARE_ALGOS.map((a) => allSteps[a.key].length));
+    if (maxLen === 0) return;
+
+    setCompareMode(true);
+    setRunning(true);
+    let idx = 0;
+
+    compareAnimRef.current = setInterval(() => {
+      if (idx >= maxLen) {
+        if (compareAnimRef.current) clearInterval(compareAnimRef.current);
+        setRunning(false);
+        // Set final stats
+        setCompareResults((prev) => {
+          const next = { ...prev };
+          for (const a of COMPARE_ALGOS) {
+            const steps = allSteps[a.key];
+            const last = steps[steps.length - 1];
+            if (last) {
+              next[a.key] = {
+                step: last,
+                stats: { visited: last.visited.size, pathLen: last.path?.length ?? 0 },
+              };
+            }
+          }
+          return next;
+        });
+        return;
+      }
+
+      setCompareResults((prev) => {
+        const next = { ...prev };
+        for (const a of COMPARE_ALGOS) {
+          const steps = allSteps[a.key];
+          if (idx < steps.length) {
+            next[a.key] = { ...next[a.key], step: steps[idx] };
+          } else if (steps.length > 0) {
+            // Algo finished — show final state with stats
+            const last = steps[steps.length - 1];
+            next[a.key] = {
+              step: last,
+              stats: { visited: last.visited.size, pathLen: last.path?.length ?? 0 },
+            };
+          }
+        }
+        return next;
+      });
+      idx++;
+    }, delay);
+  }, [running, grid, start, end, delay]);
 
   const handleClear = useCallback(() => {
     if (animRef.current) clearInterval(animRef.current);
+    clearCompare();
     setRunning(false);
     setGrid(makeGrid());
     setSearchStep(null);
     setStats(null);
-  }, []);
+  }, [clearCompare]);
 
   const handleClearSearch = useCallback(() => {
     if (animRef.current) clearInterval(animRef.current);
+    clearCompare();
     setRunning(false);
     setSearchStep(null);
     setStats(null);
-  }, []);
+  }, [clearCompare]);
 
   const handleMaze = useCallback(() => {
     if (running) return;
@@ -410,6 +541,21 @@ export default function PathfindingGridViz() {
         <button type="button" className="inline-flex items-center rounded-md border bg-card px-4 py-2 text-sm font-medium hover:bg-muted transition-colors" onClick={handleClear}>
           Clear All
         </button>
+        <button type="button" className="inline-flex items-center rounded-md border border-primary/50 bg-card px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50" onClick={handleCompare} disabled={running}>
+          Compare All
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', fontSize: '12px', color: 'var(--muted-foreground)' }}>
+          <span>Fast</span>
+          <input
+            type="range"
+            min={1}
+            max={200}
+            value={delay}
+            onChange={(e) => setDelay(Number(e.target.value))}
+            style={{ width: '80px', accentColor: 'var(--primary)' }}
+          />
+          <span>Slow</span>
+        </div>
       </div>
 
       {/* Canvas */}
@@ -446,6 +592,30 @@ export default function PathfindingGridViz() {
       {stats && !stats.pathLen && (
         <div style={{ padding: '4px 12px 8px', fontSize: '13px', color: 'var(--color-error)' }}>
           No path found. Try removing some walls.
+        </div>
+      )}
+
+      {/* Compare All view */}
+      {compareMode && (
+        <div style={{ padding: '8px 12px 12px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '12px',
+          }}>
+            {COMPARE_ALGOS.map((a) => (
+              <CompareCanvas
+                key={a.key}
+                grid={grid}
+                start={start}
+                end={end}
+                step={compareResults[a.key].step}
+                stats={compareResults[a.key].stats}
+                label={a.label}
+                width={Math.max(200, Math.floor((displayW - 48) / 3))}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

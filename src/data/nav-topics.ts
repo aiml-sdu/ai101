@@ -63,7 +63,6 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-04',
     number: 4,
     title: 'Informed Search',
-    locked: true,
     sections: [
       { id: 'heuristics', number: '4.1', title: 'Heuristics' },
       { id: 'greedy', number: '4.2', title: 'Greedy Best-First' },

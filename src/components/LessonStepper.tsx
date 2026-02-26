@@ -66,6 +66,19 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
     if (idx >= 0 && idx < cards.length) setCurrentIndex(idx);
   }, [cards.length]);
 
+  // Auto-complete informational cards that don't require user interaction
+  useEffect(() => {
+    const card = cards[currentIndex];
+    if (!card?.autoComplete) return;
+    setCompletedSet((prev) => {
+      if (prev.has(card.id)) return prev;
+      const next = new Set(prev);
+      next.add(card.id);
+      saveCompleted(storagePrefix, next);
+      return next;
+    });
+  }, [currentIndex, cards, storagePrefix]);
+
   // Stepper → Sidebar: report current section
   useEffect(() => {
     const sectionId = cards[currentIndex]?.sectionId;

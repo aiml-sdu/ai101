@@ -8,12 +8,14 @@ interface ContentOutlineProps {
   visitedSections: Set<string>;
 }
 
-// Lab exercise metadata for topic-03
-const EXERCISES = [
-  { id: 'lab-t03-ex1', steps: 4 },
-  { id: 'lab-t03-ex2', steps: 3 },
-  { id: 'lab-t03-ex3', steps: 3 },
-];
+// Lab exercise metadata per topic
+const TOPIC_EXERCISES: Record<string, { id: string; steps: number }[]> = {
+  'topic-01': [{ id: 'lab-t01-ex1', steps: 3 }, { id: 'lab-t01-ex2', steps: 3 }, { id: 'lab-t01-ex3', steps: 3 }],
+  'topic-02': [{ id: 'lab-t02-ex1', steps: 3 }, { id: 'lab-t02-ex2', steps: 3 }, { id: 'lab-t02-ex3', steps: 3 }],
+  'topic-03': [{ id: 'lab-t03-ex1', steps: 4 }, { id: 'lab-t03-ex2', steps: 3 }, { id: 'lab-t03-ex3', steps: 3 }],
+  'topic-04': [{ id: 'lab3-ex1', steps: 6 }, { id: 'lab3-ex2', steps: 4 }, { id: 'lab3-ex3', steps: 3 }],
+  'topic-05': [{ id: 'lab4-ex1', steps: 4 }, { id: 'lab4-ex2', steps: 4 }, { id: 'lab4-ex3', steps: 3 }],
+};
 
 export default function ContentOutline({
   topicId,
@@ -29,8 +31,7 @@ export default function ContentOutline({
     navigate(`/${topicId}#${sectionId}`);
   };
 
-  // Check if this topic has a lab section
-  const hasLab = topic.sections.some((s) => s.id === 'lab');
+  const exercises = TOPIC_EXERCISES[topicId];
 
   return (
     <nav className="sticky top-6">
@@ -64,9 +65,9 @@ export default function ContentOutline({
               </button>
 
               {/* Lab exercise progress dots */}
-              {isLab && hasLab && (
+              {isLab && exercises && (
                 <div className="flex items-center gap-2 px-2 py-1 ml-4">
-                  {EXERCISES.map((ex) => {
+                  {exercises.map((ex) => {
                     const { completed, total } = getExerciseProgress(ex.id, ex.steps);
                     return (
                       <div key={ex.id} className="flex items-center gap-0.5">

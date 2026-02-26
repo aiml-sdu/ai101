@@ -7,8 +7,14 @@ function getKey(topicId: string, sectionId: string) {
 }
 
 let listeners: (() => void)[] = [];
+let version = 0;
 function emitChange() {
+  version++;
   for (const l of listeners) l();
+}
+
+export function getVersion() {
+  return version;
 }
 
 export function subscribe(cb: () => void) {

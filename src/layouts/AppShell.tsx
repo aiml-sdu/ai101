@@ -63,7 +63,6 @@ export default function AppShell() {
       <SideNav
         activeTopic={activeTopic}
         activeSection={activeSection}
-        visitedSections={visitedSections}
       />
       <SidebarInset>
         <TopBar

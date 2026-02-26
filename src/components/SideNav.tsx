@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Lock, Eye } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { NAV_TOPICS } from '../data/nav-topics.ts';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
+import { subscribe, getVersion } from '@/hooks/useSectionProgress';
 import {
   Sidebar,
   SidebarContent,
@@ -26,14 +27,16 @@ import {
 interface SideNavProps {
   activeTopic: string;
   activeSection: string;
-  visitedSections?: Set<string>;
 }
 
-export default function SideNav({ activeTopic, activeSection, visitedSections }: SideNavProps) {
+export default function SideNav({ activeTopic, activeSection }: SideNavProps) {
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const progress = useCourseProgress();
   const { isMobile, setOpenMobile } = useSidebar();
+
+  // Subscribe to section-progress changes so visited dots update across all topics
+  useSyncExternalStore(subscribe, getVersion);
 
   // Review mode: enabled if user is signed in OR if VITE_REVIEW_MODE env var is set
   const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
@@ -163,7 +166,7 @@ export default function SideNav({ activeTopic, activeSection, visitedSections }:
                       <SidebarMenuSub>
                         {topic.sections.map((section) => {
                           const isSectionActive = activeSection === section.id && activeTopic === topic.id;
-                          const isSectionVisited = activeTopic === topic.id && visitedSections?.has(section.id);
+                          const isSectionVisited = !!localStorage.getItem(`visited-${topic.id}-${section.id}`);
                           return (
                             <SidebarMenuSubItem key={`${topic.id}/${section.id}`}>
                               <SidebarMenuSubButton

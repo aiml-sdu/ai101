@@ -78,7 +78,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-05',
     number: 5,
     title: 'Local Search',
-    locked: true,
+    locked: false,
     sections: [
       { id: 'motivation', number: '5.1', title: 'Beyond Search Trees' },
       { id: 'hill-climb', number: '5.2', title: 'Hill Climbing' },

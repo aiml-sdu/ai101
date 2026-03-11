@@ -92,8 +92,15 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-06',
     number: 6,
     title: 'Adversarial Search',
-    locked: true,
-    sections: [],
+    locked: false,
+    sections: [
+      { id: 'games', number: '6.1', title: 'Games & Competition' },
+      { id: 'minimax', number: '6.2', title: 'Game Trees & Minimax' },
+      { id: 'alpha-beta', number: '6.3', title: 'Alpha-Beta Pruning' },
+      { id: 'beyond', number: '6.4', title: 'Beyond Perfect Play' },
+      { id: 'history', number: '6.5', title: 'Historical Milestones' },
+      { id: 'lab', number: 'Lab', title: 'Lab 5' },
+    ],
   },
   {
     id: 'topic-07',

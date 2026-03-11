@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { sampleExpectiminimax, expectiminimax, type GameNode } from '@/lib/adversarial';
 import { Button } from '@/components/ui/button';
 
@@ -69,9 +69,14 @@ export default function ExpectiminimaxViz() {
   const [highlight, setHighlight] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
+  const cancelRef = useRef(false);
+
+  // Cancel animation on unmount
+  useEffect(() => () => { cancelRef.current = true; }, []);
 
   const evaluate = useCallback(async () => {
     if (running) return;
+    cancelRef.current = false;
     setRunning(true);
     setValues({});
     setDone(false);
@@ -80,21 +85,27 @@ export default function ExpectiminimaxViz() {
 
     // Step 1: MIN nodes (D, E, F, G)
     for (const id of ['D', 'E', 'F', 'G']) {
+      if (cancelRef.current) return;
       setHighlight(id);
       await delay(600);
+      if (cancelRef.current) return;
       setValues(prev => ({ ...prev, [id]: answers[id] }));
     }
 
     // Step 2: CHANCE nodes (B, C)
     for (const id of ['B', 'C']) {
+      if (cancelRef.current) return;
       setHighlight(id);
       await delay(600);
+      if (cancelRef.current) return;
       setValues(prev => ({ ...prev, [id]: answers[id] }));
     }
 
     // Step 3: MAX root (A)
+    if (cancelRef.current) return;
     setHighlight('A');
     await delay(600);
+    if (cancelRef.current) return;
     setValues(prev => ({ ...prev, A: answers.A }));
 
     setHighlight(null);

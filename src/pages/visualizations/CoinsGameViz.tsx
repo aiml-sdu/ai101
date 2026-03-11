@@ -87,9 +87,10 @@ export default function CoinsGameViz() {
     setState(s => ({ ...s, showAnalysis: true }));
   }, []);
 
-  // Starting position analysis (first player = human = MIN from AI's perspective)
-  // Human goes first, so from human's perspective as the starting player:
-  // If coinsMinimaxValue(total, true) > 0, MAX (first player) has a winning strategy
+  // Human goes first. In our game, AI is always MAX in the effect.
+  // For the post-game analysis, model the first player (human) as MAX:
+  // coinsMinimaxValue(total, true) = value when it's MAX's turn with `total` coins.
+  // If > 0, the first mover (human) can force a win with perfect play.
   const startingValue = coinsMinimaxValue(total, true);
   const firstPlayerWins = startingValue > 0;
 

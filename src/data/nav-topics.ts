@@ -106,8 +106,15 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-07',
     number: 7,
     title: 'Constraint Satisfaction Problems',
-    locked: true,
-    sections: [],
+    locked: false,
+    sections: [
+      { id: 'intro', number: '7.1', title: 'A New Kind of Problem' },
+      { id: 'map-coloring', number: '7.2', title: 'Map Coloring' },
+      { id: 'backtracking', number: '7.3', title: 'Backtracking Search' },
+      { id: 'smarter', number: '7.4', title: 'Smarter Backtracking' },
+      { id: 'real-world', number: '7.5', title: 'CSP in the Real World' },
+      { id: 'lab', number: 'Lab', title: 'Lab 6' },
+    ],
   },
   {
     id: 'topic-08',

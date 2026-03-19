@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AlgoControls from '@/components/AlgoControls';
+import { cn } from '@/lib/utils';
 import {
   collectAC3Steps,
   createAustraliaMapCSP,
@@ -104,6 +105,7 @@ export default function AC3StepViz() {
           problem={problem}
           domains={step.domains}
           activeRegion={activeRegion}
+          highlightedEdge={step.arc ?? undefined}
         />
 
         <div className="space-y-3">
@@ -116,8 +118,8 @@ export default function AC3StepViz() {
               </p>
             )}
             {step.pruned && (
-              <p className="mt-2 text-emerald-700 dark:text-emerald-300">
-                Removed from {step.pruned.variable}: {step.pruned.removed.join(', ')}
+              <p className="mt-2 text-red-600 dark:text-red-300">
+                Removed <span className="line-through">{step.pruned.removed.join(', ')}</span> from {step.pruned.variable}
               </p>
             )}
           </div>
@@ -125,11 +127,16 @@ export default function AC3StepViz() {
           <div className="rounded-xl border bg-card p-4 text-sm">
             <div className="font-semibold">Queue</div>
             <div className="mt-2 flex flex-wrap gap-2">
+              {step.arc && (
+                <span className="rounded-full bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
+                  Processing: {step.arc.from} → {step.arc.to}
+                </span>
+              )}
               {step.queue.length > 0 ? step.queue.map((arc, arcIndex) => (
                 <span key={`${arc.from}-${arc.to}-${arcIndex}`} className="rounded-full border px-2 py-1 text-xs">
                   {arc.from} → {arc.to}
                 </span>
-              )) : (
+              )) : !step.arc && (
                 <span className="text-muted-foreground">Queue empty</span>
               )}
             </div>
@@ -139,14 +146,20 @@ export default function AC3StepViz() {
             <div className="font-semibold">Domains</div>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {(Object.entries(step.domains) as [AustraliaVariable, AustraliaColor[]][])
-                .map(([variable, values]) => (
-                  <div key={variable} className="rounded-lg border bg-muted/20 px-3 py-2">
-                    <div className="font-medium">{variable}</div>
-                    <div className={values.length === 0 ? 'text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
-                      {domainLabel(values)}
+                .map(([variable, values]) => {
+                  const wasPruned = step.pruned?.variable === variable;
+                  return (
+                    <div key={variable} className={cn('rounded-lg border bg-muted/20 px-3 py-2', wasPruned && 'border-red-500/30')}>
+                      <div className="font-medium">{variable}</div>
+                      <div className={values.length === 0 ? 'text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
+                        {domainLabel(values)}
+                        {wasPruned && step.pruned!.removed.length > 0 && (
+                          <span className="ml-1.5 line-through text-red-400">{step.pruned!.removed.join(', ')}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
               Revisions: {step.revisions} | Consistency checks: {step.checks}

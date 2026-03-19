@@ -13,6 +13,7 @@ import {
   AustraliaColorPalette,
   AustraliaConstraintGraph,
   AustraliaMapBoard,
+  colorLabel,
 } from './CSPShared';
 
 type AustraliaAssignment = Partial<Record<AustraliaVariable, AustraliaColor>>;
@@ -22,6 +23,8 @@ export default function AustraliaMapCSPViz() {
   const [assignment, setAssignment] = useState<AustraliaAssignment>({});
   const [selectedColor, setSelectedColor] = useState<AustraliaColor | null>('red');
   const [activeRegion, setActiveRegion] = useState<AustraliaVariable | null>('SA');
+  const [shakenRegion, setShakenRegion] = useState<AustraliaVariable | null>(null);
+  const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
 
   const violations = useMemo(
     () => getAssignmentViolations(problem, assignment),
@@ -33,15 +36,35 @@ export default function AustraliaMapCSPViz() {
 
   const handleRegionClick = (region: AustraliaVariable) => {
     setActiveRegion(region);
-    setAssignment((prev) => {
-      const next = { ...prev };
-      if (selectedColor === null) {
+
+    if (selectedColor === null) {
+      setRejectionMessage(null);
+      setAssignment((prev) => {
+        const next = { ...prev };
         delete next[region];
-      } else {
-        next[region] = selectedColor;
-      }
-      return next;
-    });
+        return next;
+      });
+      return;
+    }
+
+    if (assignment[region] === selectedColor) return;
+
+    const neighbors = problem.neighbors[region] ?? [];
+    const conflictingNeighbor = neighbors.find(
+      (n) => assignment[n as AustraliaVariable] === selectedColor,
+    );
+
+    if (conflictingNeighbor) {
+      setShakenRegion(region);
+      setRejectionMessage(
+        `${conflictingNeighbor} is already ${colorLabel(selectedColor)}! Adjacent regions can't share a color.`,
+      );
+      setTimeout(() => setShakenRegion(null), 500);
+      return;
+    }
+
+    setRejectionMessage(null);
+    setAssignment((prev) => ({ ...prev, [region]: selectedColor }));
   };
 
   const handleSolve = () => {
@@ -49,6 +72,7 @@ export default function AustraliaMapCSPViz() {
     if (solution) {
       setAssignment(solution);
       setActiveRegion('SA');
+      setRejectionMessage(null);
     }
   };
 
@@ -56,6 +80,8 @@ export default function AustraliaMapCSPViz() {
     setAssignment({});
     setActiveRegion('SA');
     setSelectedColor('red');
+    setRejectionMessage(null);
+    setShakenRegion(null);
   };
 
   return (
@@ -85,6 +111,7 @@ export default function AustraliaMapCSPViz() {
             onRegionClick={handleRegionClick}
             activeRegion={activeRegion}
             violations={violations}
+            shakenRegion={shakenRegion}
           />
           <AustraliaConstraintGraph
             assignment={assignment}
@@ -102,21 +129,28 @@ export default function AustraliaMapCSPViz() {
           <div className="font-semibold">Status</div>
           <div className="mt-2 space-y-1 text-muted-foreground">
             <p>Assigned regions: {Object.keys(assignment).length} / 7</p>
-            <p>Constraint violations: {violations.length}</p>
             <p>
               Active color:{' '}
               <span className="font-medium text-foreground">
-                {selectedColor ? selectedColor : 'erase'}
+                {selectedColor ? colorLabel(selectedColor) : 'erase'}
               </span>
             </p>
           </div>
-          <div className="mt-3 rounded-lg border bg-card px-3 py-2 font-medium">
-            {solved
-              ? 'Solved: every neighboring pair has different colors.'
-              : violations.length > 0
-                ? 'Some neighboring regions share a color. Red outlines mark conflicts.'
-                : 'No conflicts so far. Keep going.'}
-          </div>
+          {solved ? (
+            <div className="mt-3 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 font-medium text-green-700 dark:text-green-300">
+              Solved! Every neighboring pair has different colors.
+            </div>
+          ) : rejectionMessage ? (
+            <div className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300">
+              {rejectionMessage}
+            </div>
+          ) : (
+            <div className="mt-3 rounded-lg border bg-card px-3 py-2 font-medium">
+              {Object.keys(assignment).length === 0
+                ? 'Select a color, then click a region.'
+                : 'No conflicts so far. Keep going!'}
+            </div>
+          )}
         </div>
       </div>
     </div>

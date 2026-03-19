@@ -276,6 +276,16 @@
   30%, 70% { transform: translateX(4px); }
 }
 
+/* CSP violation pulse for SVG elements */
+@keyframes csp-violation-pulse {
+  0%, 100% { stroke-opacity: 1; }
+  50% { stroke-opacity: 0.5; }
+}
+
+.csp-violation-pulse {
+  animation: csp-violation-pulse 0.8s ease-in-out infinite;
+}
+
 /* Syntax highlighting classes */
 .code-keyword {
   color: oklch(0.65 0.2 280);

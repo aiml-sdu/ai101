@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   createAustraliaMapCSP,
   type AustraliaColor,
@@ -74,6 +75,11 @@ export default function ForwardCheckingViz() {
   const current = TRACE[index];
   const forwardDomains = domainsAfterAssignment(current.assignment);
   const wipeouts = domainWipeouts(forwardDomains);
+  const prevDomains = index > 0 ? domainsAfterAssignment(TRACE[index - 1].assignment) : null;
+  const prevAssignment = index > 0 ? TRACE[index - 1].assignment : {};
+  const newlyAssigned = (Object.keys(current.assignment) as AustraliaVariable[]).find(
+    (k) => !(k in prevAssignment),
+  );
 
   return (
     <div className="my-6 rounded-xl border bg-card p-4">
@@ -94,20 +100,28 @@ export default function ForwardCheckingViz() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-full border px-3 py-1 text-xs font-medium w-fit">
-        Step {index + 1} / {TRACE.length}
+      <div className="mt-4 flex items-center gap-2">
+        {TRACE.map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              'size-2.5 rounded-full transition-colors',
+              i < index ? 'bg-primary' : i === index ? 'bg-primary ring-2 ring-primary ring-offset-2 ring-offset-card' : 'bg-muted-foreground/30',
+            )}
+          />
+        ))}
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border bg-muted/20 p-4">
-          <div className="font-semibold">Plain Backtracking</div>
+          <div className="font-semibold text-muted-foreground">Plain Backtracking</div>
           <p className="mt-2 text-sm text-muted-foreground">{current.plainMessage}</p>
           <div className="mt-4">
-            <AustraliaAssignmentList assignment={current.assignment} />
+            <AustraliaAssignmentList assignment={current.assignment} highlightVariable={newlyAssigned} />
           </div>
         </div>
 
-        <div className="rounded-xl border bg-muted/20 p-4">
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
           <div className="font-semibold">Forward Checking</div>
           <p className="mt-2 text-sm text-muted-foreground">{current.fcMessage}</p>
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
@@ -115,18 +129,24 @@ export default function ForwardCheckingViz() {
               assignment={current.assignment}
               problem={problem}
               domains={forwardDomains}
-              activeRegion={wipeouts[0] ?? 'SA'}
+              activeRegion={newlyAssigned ?? wipeouts[0] ?? 'SA'}
             />
             <div className="space-y-2 rounded-xl border bg-card p-4 text-sm">
               {(Object.entries(forwardDomains) as [AustraliaVariable, AustraliaColor[]][])
-                .map(([variable, values]) => (
-                  <div key={variable} className="flex items-center justify-between gap-3">
-                    <span className="font-medium">{variable}</span>
-                    <span className={values.length === 0 ? 'font-semibold text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
-                      {domainLabel(values)}
-                    </span>
-                  </div>
-                ))}
+                .map(([variable, values]) => {
+                  const pruned = prevDomains ? (prevDomains[variable as AustraliaVariable] ?? []).filter((v) => !values.includes(v)) : [];
+                  return (
+                    <div key={variable} className="flex items-center justify-between gap-3">
+                      <span className="font-medium">{variable}</span>
+                      <span className={values.length === 0 ? 'font-semibold text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
+                        {domainLabel(values)}
+                        {pruned.length > 0 && (
+                          <span className="ml-1.5 line-through text-red-400">{pruned.join(', ')}</span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               {wipeouts.length > 0 && (
                 <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300">
                   Empty domain detected: {wipeouts.join(', ')}.

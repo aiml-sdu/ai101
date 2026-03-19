@@ -75,6 +75,11 @@ export default function StepChallenge({ exerciseId, steps }: StepChallengeProps)
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.25 }}
         >
+          {isStepComplete(steps[activeStep].id) && (
+            <div className="mb-3 rounded-lg bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-300">
+              Completed. You can redo this step if you want.
+            </div>
+          )}
           {steps[activeStep].content(() => handleComplete(steps[activeStep].id))}
         </motion.div>
       </AnimatePresence>

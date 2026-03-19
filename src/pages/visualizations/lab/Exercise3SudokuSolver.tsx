@@ -115,15 +115,23 @@ export default function Exercise3SudokuSolver() {
         ))}
       </div>
 
+      {initialPhase !== 'start' && (
+        <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-700 dark:text-blue-300">
+          Resuming from where you left off.{initialPhase === 'ac3' ? ' AC-3 has already been run.' : ' AC-3 and search have been completed.'}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          variant={phase !== 'start' ? 'outline' : 'default'}
+          disabled={phase !== 'start'}
           onClick={() => {
             setPhase('ac3');
             if (!step1Done) markStepComplete(1);
           }}
         >
-          Run AC-3
+          {phase !== 'start' ? '✓ AC-3 Done' : 'Run AC-3'}
         </Button>
         <Button
           size="sm"
@@ -133,9 +141,9 @@ export default function Exercise3SudokuSolver() {
             if (!step1Done) markStepComplete(1);
             if (!step3Done) markStepComplete(3);
           }}
-          disabled={!solution || (!step2Done && !step3Done)}
+          disabled={phase === 'solve' || !solution || !step2Done}
         >
-          Finish Search
+          {phase === 'solve' ? '✓ Search Complete' : 'Finish Search'}
         </Button>
       </div>
 

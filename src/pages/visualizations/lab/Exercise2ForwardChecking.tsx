@@ -112,11 +112,18 @@ function FCStep({
           Check
         </Button>
       ) : (
-        <div className={cn(
-          'rounded-lg px-3 py-2 text-sm',
-          correct ? 'bg-green-500/10 text-green-700 dark:text-green-300' : 'bg-red-500/10 text-red-700 dark:text-red-300',
-        )}>
-          {selectedChoice?.explanation}
+        <div className="space-y-2">
+          <div className={cn(
+            'rounded-lg px-3 py-2 text-sm',
+            correct ? 'bg-green-500/10 text-green-700 dark:text-green-300' : 'bg-red-500/10 text-red-700 dark:text-red-300',
+          )}>
+            {selectedChoice?.explanation}
+          </div>
+          {!correct && (
+            <Button size="sm" variant="outline" onClick={() => { setSelected(null); setSubmitted(false); }}>
+              Try again
+            </Button>
+          )}
         </div>
       )}
     </div>

@@ -86,17 +86,28 @@ export function AustraliaMapBoard({
   activeRegion = null,
   highlightRegions = [],
   violations = [],
+  shakenRegion = null,
 }: {
   assignment: AustraliaAssignment;
   onRegionClick?: (region: AustraliaVariable) => void;
   activeRegion?: AustraliaVariable | null;
   highlightRegions?: AustraliaVariable[];
   violations?: AC3Arc[];
+  shakenRegion?: AustraliaVariable | null;
 }) {
   const highlighted = new Set(highlightRegions);
 
   return (
     <svg viewBox="0 0 370 360" className="w-full max-w-[26rem] rounded-xl border bg-muted/20 p-2">
+      <defs>
+        <filter id="csp-violation-glow-map" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
       <text x={20} y={18} className="fill-muted-foreground" style={{ fontSize: 11 }}>
         Click a region to assign a color
       </text>
@@ -105,14 +116,17 @@ export function AustraliaMapBoard({
         const active = region.id === activeRegion;
         const hasError = hasViolation(region.id, violations);
         return (
-          <g key={region.id}>
+          <g key={region.id} style={region.id === shakenRegion ? { animation: 'shake 0.5s ease-in-out' } : undefined}>
             <polygon
               points={region.points}
               fill={fill}
               stroke={hasError ? '#dc2626' : active || highlighted.has(region.id) ? 'oklch(0.62 0.18 250)' : 'oklch(0.74 0 0)'}
-              strokeWidth={active ? 4 : highlighted.has(region.id) ? 3 : 2}
-              className={cn(onRegionClick && 'cursor-pointer transition-opacity hover:opacity-90')}
-              opacity={hasError ? 0.95 : 1}
+              strokeWidth={hasError ? 5 : active ? 4 : highlighted.has(region.id) ? 3 : 2}
+              filter={hasError ? 'url(#csp-violation-glow-map)' : undefined}
+              className={cn(
+                onRegionClick && 'cursor-pointer transition-opacity hover:opacity-90',
+                hasError && 'csp-violation-pulse',
+              )}
               onClick={() => onRegionClick?.(region.id)}
             />
             <text
@@ -139,6 +153,7 @@ export function AustraliaConstraintGraph({
   activeRegion = null,
   onNodeClick,
   violations,
+  highlightedEdge,
 }: {
   assignment: AustraliaAssignment;
   problem: Pick<CSPProblem<AustraliaColor>, 'variables' | 'neighbors' | 'isConsistent'>;
@@ -146,6 +161,7 @@ export function AustraliaConstraintGraph({
   activeRegion?: AustraliaVariable | null;
   onNodeClick?: (region: AustraliaVariable) => void;
   violations?: AC3Arc[];
+  highlightedEdge?: AC3Arc;
 }) {
   const computedViolations = violations ?? getAssignmentViolations(problem, assignment);
   const seen = new Set<string>();
@@ -160,6 +176,15 @@ export function AustraliaConstraintGraph({
 
   return (
     <svg viewBox="0 0 380 360" className="w-full max-w-[26rem] rounded-xl border bg-card p-2">
+      <defs>
+        <filter id="csp-violation-glow-graph" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
       {edges.map((edge) => {
         const from = AUSTRALIA_GRAPH_POSITIONS[edge.from];
         const to = AUSTRALIA_GRAPH_POSITIONS[edge.to];
@@ -168,6 +193,10 @@ export function AustraliaConstraintGraph({
           (item.from === edge.from && item.to === edge.to)
           || (item.from === edge.to && item.to === edge.from)
         ));
+        const isHighlightedArc = highlightedEdge && (
+          (edge.from === highlightedEdge.from && edge.to === highlightedEdge.to)
+          || (edge.from === highlightedEdge.to && edge.to === highlightedEdge.from)
+        );
         return (
           <line
             key={`${edge.from}-${edge.to}`}
@@ -175,8 +204,10 @@ export function AustraliaConstraintGraph({
             y1={from.y}
             x2={to.x}
             y2={to.y}
-            stroke={violated ? '#dc2626' : highlighted ? 'oklch(0.62 0.18 250)' : 'oklch(0.76 0 0)'}
-            strokeWidth={highlighted || violated ? 3 : 2}
+            stroke={violated ? '#dc2626' : isHighlightedArc ? '#f59e0b' : highlighted ? 'oklch(0.62 0.18 250)' : 'oklch(0.76 0 0)'}
+            strokeWidth={violated ? 4 : isHighlightedArc ? 4 : highlighted ? 3 : 2}
+            filter={violated ? 'url(#csp-violation-glow-graph)' : undefined}
+            className={violated ? 'csp-violation-pulse' : undefined}
           />
         );
       })}
@@ -187,7 +218,8 @@ export function AustraliaConstraintGraph({
         const active = region === activeRegion;
         const neighbor = isActiveNeighbor(region, activeRegion, problem);
         const fill = assignment[region] ? COLOR_SWATCH[assignment[region]!] : 'white';
-        const stroke = hasViolation(region, computedViolations)
+        const regionViolated = hasViolation(region, computedViolations);
+        const stroke = regionViolated
           ? '#dc2626'
           : active
             ? 'oklch(0.62 0.18 250)'
@@ -202,8 +234,12 @@ export function AustraliaConstraintGraph({
               r={22}
               fill={fill}
               stroke={stroke}
-              strokeWidth={active ? 4 : neighbor ? 3 : 2}
-              className={cn(onNodeClick && 'cursor-pointer hover:opacity-90')}
+              strokeWidth={regionViolated ? 4 : active ? 4 : neighbor ? 3 : 2}
+              filter={regionViolated ? 'url(#csp-violation-glow-graph)' : undefined}
+              className={cn(
+                onNodeClick && 'cursor-pointer hover:opacity-90',
+                regionViolated && 'csp-violation-pulse',
+              )}
               onClick={() => onNodeClick?.(region)}
             />
             <text
@@ -237,16 +273,18 @@ export function AustraliaConstraintGraph({
 export function AustraliaAssignmentList({
   assignment,
   domains,
+  highlightVariable,
 }: {
   assignment: Partial<Record<AustraliaVariable, AustraliaColor>>;
   domains?: DomainMap<AustraliaColor>;
+  highlightVariable?: AustraliaVariable;
 }) {
   return (
     <div className="grid grid-cols-2 gap-2 text-sm">
       {(['WA', 'NT', 'SA', 'Q', 'NSW', 'V', 'T'] as AustraliaVariable[]).map((region) => {
         const value = assignment[region];
         return (
-          <div key={region} className="rounded-lg border bg-card px-3 py-2">
+          <div key={region} className={cn('rounded-lg border bg-card px-3 py-2', region === highlightVariable && 'border-primary bg-primary/10')}>
             <div className="font-semibold">{region}</div>
             <div className="text-muted-foreground">
               {value ? colorLabel(value) : domains ? domainLabel(domains[region]) : 'unassigned'}

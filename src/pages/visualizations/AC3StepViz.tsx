@@ -9,7 +9,7 @@ import {
   type AustraliaVariable,
   type DomainMap,
 } from '@/lib/csp';
-import { AustraliaConstraintGraph, domainLabel } from './CSPShared';
+import { AustraliaConstraintGraph } from './CSPShared';
 
 function initialDomains(): DomainMap<AustraliaColor> {
   return {
@@ -40,6 +40,7 @@ export default function AC3StepViz() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!playing) {
@@ -62,6 +63,10 @@ export default function AC3StepViz() {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [playing, speed, steps.length]);
+
+  useEffect(() => {
+    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
+  }, [index]);
 
   const step = steps[index];
   const activeRegion = (step.arc?.from ?? 'SA') as AustraliaVariable;
@@ -110,18 +115,38 @@ export default function AC3StepViz() {
 
         <div className="space-y-3">
           <div className="rounded-xl border bg-muted/30 p-4 text-sm">
-            <div className="font-semibold">Current action</div>
-            <p className="mt-2 text-muted-foreground">{step.message}</p>
-            {step.arc && (
-              <p className="mt-2 font-medium">
-                Active arc: {step.arc.from} → {step.arc.to}
-              </p>
-            )}
-            {step.pruned && (
-              <p className="mt-2 text-red-600 dark:text-red-300">
-                Removed <span className="line-through">{step.pruned.removed.join(', ')}</span> from {step.pruned.variable}
-              </p>
-            )}
+            <div className="flex items-center justify-between">
+              <div className="font-semibold">Action log</div>
+              <span className="text-xs text-muted-foreground">
+                Revisions: {step.revisions} | Checks: {step.checks}
+              </span>
+            </div>
+            <div ref={logRef} className="mt-2 max-h-36 overflow-y-auto space-y-0.5">
+              {index === 0 ? (
+                <p className="text-xs text-muted-foreground py-1">Step forward to build the log.</p>
+              ) : steps.slice(1, index + 1).map((s, i) => {
+                const stepIdx = i + 1;
+                const isCurrent = stepIdx === index;
+                return (
+                  <div key={stepIdx} className={cn(
+                    'flex items-baseline gap-2 text-xs rounded px-1.5 py-0.5',
+                    isCurrent ? 'bg-primary/10 text-foreground font-medium' : 'text-muted-foreground',
+                  )}>
+                    <span className="w-4 text-right shrink-0 font-mono text-[10px]">{stepIdx}</span>
+                    {s.arc && <span className="font-mono shrink-0">{s.arc.from}→{s.arc.to}</span>}
+                    {s.pruned ? (
+                      <span className="text-red-500 dark:text-red-400">
+                        −{s.pruned.removed.join(', ')} from {s.pruned.variable}
+                      </span>
+                    ) : s.arc ? (
+                      <span>no change</span>
+                    ) : (
+                      <span>{s.message}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-xl border bg-card p-4 text-sm">
@@ -150,20 +175,21 @@ export default function AC3StepViz() {
                   const wasPruned = step.pruned?.variable === variable;
                   return (
                     <div key={variable} className={cn('rounded-lg border bg-muted/20 px-3 py-2', wasPruned && 'border-red-500/30')}>
-                      <div className="font-medium">{variable}</div>
-                      <div className={values.length === 0 ? 'text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
-                        {domainLabel(values)}
-                        {wasPruned && step.pruned!.removed.length > 0 && (
-                          <span className="ml-1.5 line-through text-red-400">{step.pruned!.removed.join(', ')}</span>
-                        )}
+                      <div className="font-semibold text-xs mb-1">{variable}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {values.length === 0 ? (
+                          <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-300">∅</span>
+                        ) : values.map((v) => (
+                          <span key={v} className="rounded-full bg-muted px-1.5 py-0.5 text-[11px]">{v}</span>
+                        ))}
+                        {wasPruned && step.pruned!.removed.map((v) => (
+                          <span key={v} className="rounded-full bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 text-[11px] text-red-500 line-through decoration-2">{v}</span>
+                        ))}
                       </div>
                     </div>
                   );
                 })}
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Revisions: {step.revisions} | Consistency checks: {step.checks}
-            </p>
           </div>
         </div>
       </div>

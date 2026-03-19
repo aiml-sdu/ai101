@@ -7,7 +7,7 @@ import {
   type AustraliaVariable,
   type DomainMap,
 } from '@/lib/csp';
-import { AustraliaAssignmentList, AustraliaConstraintGraph, domainLabel } from './CSPShared';
+import { AustraliaAssignmentList, AustraliaConstraintGraph } from './CSPShared';
 
 type AustraliaAssignment = Partial<Record<AustraliaVariable, AustraliaColor>>;
 
@@ -131,19 +131,25 @@ export default function ForwardCheckingViz() {
               domains={forwardDomains}
               activeRegion={newlyAssigned ?? wipeouts[0] ?? 'SA'}
             />
-            <div className="space-y-2 rounded-xl border bg-card p-4 text-sm">
+            <div className="space-y-2.5 rounded-xl border bg-card p-4 text-sm">
               {(Object.entries(forwardDomains) as [AustraliaVariable, AustraliaColor[]][])
                 .map(([variable, values]) => {
                   const pruned = prevDomains ? (prevDomains[variable as AustraliaVariable] ?? []).filter((v) => !values.includes(v)) : [];
                   return (
-                    <div key={variable} className="flex items-center justify-between gap-3">
-                      <span className="font-medium">{variable}</span>
-                      <span className={values.length === 0 ? 'font-semibold text-red-600 dark:text-red-300' : 'text-muted-foreground'}>
-                        {domainLabel(values)}
-                        {pruned.length > 0 && (
-                          <span className="ml-1.5 line-through text-red-400">{pruned.join(', ')}</span>
-                        )}
-                      </span>
+                    <div key={variable} className="flex items-center gap-2">
+                      <span className="font-semibold w-8 shrink-0">{variable}</span>
+                      <div className="flex flex-wrap gap-1">
+                        {values.length === 0 ? (
+                          <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-bold text-red-600 dark:text-red-300">∅</span>
+                        ) : values.map((v) => (
+                          <span key={v} className="rounded-full bg-muted px-2.5 py-0.5 text-xs">{v}</span>
+                        ))}
+                        {pruned.map((v) => (
+                          <span key={v} className="rounded-full bg-red-500/15 border border-red-500/30 px-2.5 py-0.5 text-xs text-red-500 line-through decoration-2">
+                            {v}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   );
                 })}

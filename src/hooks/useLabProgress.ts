@@ -29,6 +29,7 @@ export function useLabProgress(exerciseId: string, totalSteps: number) {
       }
       return v;
     },
+    () => 0,
   );
 
   const isStepComplete = useCallback(

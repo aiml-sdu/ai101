@@ -166,9 +166,16 @@ export default function BacktrackingCSPGame() {
             </Button>
           </div>
         ) : (
-          <div className={`mt-4 rounded-lg border px-4 py-3 text-sm ${correct ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'}`}>
-            <div className="font-semibold">{correct ? stage.successTitle : 'Not quite.'}</div>
-            <p className="mt-1">{selectedChoice?.feedback}</p>
+          <div className="mt-4 space-y-2">
+            <div className={`rounded-lg border px-4 py-3 text-sm ${correct ? 'border-green-500 bg-green-500/10' : 'border-red-500 bg-red-500/10'}`}>
+              <div className="font-semibold">{correct ? stage.successTitle : 'Not quite.'}</div>
+              <p className="mt-1">{selectedChoice?.feedback}</p>
+            </div>
+            {!correct && (
+              <Button size="sm" variant="outline" onClick={() => { setSelected(null); setSubmitted(false); }}>
+                Try again
+              </Button>
+            )}
           </div>
         )}
 

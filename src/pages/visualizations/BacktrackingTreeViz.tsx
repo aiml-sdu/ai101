@@ -117,16 +117,16 @@ export default function BacktrackingTreeViz() {
           if (!visibleIds.has(node.id)) return null;
           const active = currentNode.id === node.id;
           const fill = node.status === 'dead'
-            ? '#fee2e2'
+            ? 'oklch(0.94 0.04 25)'
             : node.status === 'solution'
-              ? '#dcfce7'
+              ? 'oklch(0.94 0.04 150)'
               : active
-                ? '#dbeafe'
-                : 'white';
+                ? 'oklch(0.92 0.04 250)'
+                : 'oklch(0.97 0.005 265)';
           const stroke = node.status === 'dead'
-            ? '#dc2626'
+            ? 'oklch(0.58 0.22 27)'
             : node.status === 'solution'
-              ? '#16a34a'
+              ? 'oklch(0.55 0.17 150)'
               : active
                 ? 'oklch(0.62 0.18 250)'
                 : 'oklch(0.74 0 0)';

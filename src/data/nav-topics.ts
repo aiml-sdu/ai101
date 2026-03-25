@@ -120,8 +120,15 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-08',
     number: 8,
     title: 'Probability & Bayesian Networks',
-    locked: true,
-    sections: [],
+    locked: false,
+    sections: [
+      { id: 'uncertainty', number: '8.1', title: 'Uncertainty in AI' },
+      { id: 'bayes', number: '8.2', title: "Bayes' Rule" },
+      { id: 'joint', number: '8.3', title: 'Joint Distributions' },
+      { id: 'independence', number: '8.4', title: 'Independence' },
+      { id: 'bayesnets', number: '8.5', title: 'Bayesian Networks' },
+      { id: 'lab', number: 'Lab', title: 'Lab 7' },
+    ],
   },
   {
     id: 'topic-09',

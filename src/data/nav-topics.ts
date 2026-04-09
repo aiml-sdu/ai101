@@ -134,8 +134,15 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-09',
     number: 9,
     title: 'Hidden Markov Models',
-    locked: true,
-    sections: [],
+    locked: false,
+    sections: [
+      { id: 'markov', number: '9.1', title: 'Markov Chains' },
+      { id: 'hmm', number: '9.2', title: 'Hidden Markov Models' },
+      { id: 'forward', number: '9.3', title: 'Forward Algorithm' },
+      { id: 'viterbi', number: '9.4', title: 'Viterbi Algorithm' },
+      { id: 'summary', number: '9.5', title: 'Three Problems' },
+      { id: 'lab', number: 'Lab', title: 'Lab 9' },
+    ],
   },
   {
     id: 'topic-10',

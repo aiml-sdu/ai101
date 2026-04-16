@@ -36,6 +36,7 @@ export default function ResidualSquaresViz() {
   const [dragging, setDragging] = useState(false);
   const [outlierY, setOutlierY] = useState(() => basePoints[adjustableIndex].y);
   const svgRef = useRef<SVGSVGElement>(null);
+  const activePointerIdRef = useRef<number | null>(null);
 
   const points = useMemo(
     () => basePoints.map((point, index) => (index === adjustableIndex ? { ...point, y: outlierY } : point)),
@@ -62,10 +63,41 @@ export default function ResidualSquaresViz() {
 
   const mseScore = useMemo(() => mse(points, fit.w, fit.b), [points, fit]);
   const maeScore = useMemo(() => mae(points, fit.w, fit.b), [points, fit]);
+  const pointLayouts = useMemo(() => {
+    return points.map((point, index) => {
+      const predictedY = fit.w * point.x + fit.b;
+      const pointPxY = sy(point.y);
+      const predictedPxY = sy(predictedY);
+      const residualPx = Math.abs(pointPxY - predictedPxY);
+      const x = sx(point.x);
+      const top = Math.min(pointPxY, predictedPxY);
+      const squareSide = residualPx;
+      const squareX = x + squareSide <= PAD.left + plotW ? x : x - squareSide;
+
+      return {
+        index,
+        point,
+        predictedY,
+        pointPxY,
+        predictedPxY,
+        residualPx,
+        top,
+        x,
+        squareSide,
+        squareX,
+        isDraggable: index === adjustableIndex,
+      };
+    });
+  }, [fit.b, fit.w, plotH, plotW, points, sx, sy]);
+
+  const releaseDrag = useCallback(() => {
+    activePointerIdRef.current = null;
+    setDragging(false);
+  }, []);
 
   const updateDraggedPoint = useCallback(
     (event: ReactPointerEvent<SVGSVGElement>) => {
-      if (!dragging || !svgRef.current) return;
+      if (!dragging || !svgRef.current || activePointerIdRef.current !== event.pointerId) return;
       const rect = svgRef.current.getBoundingClientRect();
       const scale = VB_W / rect.width;
       const svgY = (event.clientY - rect.top) * scale;
@@ -127,8 +159,11 @@ export default function ResidualSquaresViz() {
           viewBox={`0 0 ${VB_W} ${VB_H}`}
           className="w-full touch-none"
           onPointerMove={updateDraggedPoint}
-          onPointerUp={() => setDragging(false)}
-          onPointerLeave={() => setDragging(false)}
+          onPointerUp={releaseDrag}
+          onPointerCancel={releaseDrag}
+          onPointerLeave={() => {
+            if (!dragging) releaseDrag();
+          }}
         >
           <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + plotH} stroke="var(--border)" strokeWidth={1} />
           <line x1={PAD.left} y1={PAD.top + plotH} x2={PAD.left + plotW} y2={PAD.top + plotH} stroke="var(--border)" strokeWidth={1} />
@@ -174,22 +209,14 @@ export default function ResidualSquaresViz() {
             strokeWidth={3}
           />
 
-          {points.map((point, index) => {
-            const predictedY = fit.w * point.x + fit.b;
-            const pointPxY = sy(point.y);
-            const predictedPxY = sy(predictedY);
-            const residualPx = Math.abs(pointPxY - predictedPxY);
-            const top = Math.min(pointPxY, predictedPxY);
-            const x = sx(point.x);
-            const isDraggable = index === adjustableIndex;
-
+          {pointLayouts.map((layout) => {
             return (
-              <g key={`${point.x}-${index}`}>
+              <g key={`${layout.point.x}-${layout.index}`}>
                 <line
-                  x1={x}
-                  y1={pointPxY}
-                  x2={x}
-                  y2={predictedPxY}
+                  x1={layout.x}
+                  y1={layout.pointPxY}
+                  x2={layout.x}
+                  y2={layout.predictedPxY}
                   stroke="var(--color-warning)"
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
@@ -198,43 +225,61 @@ export default function ResidualSquaresViz() {
 
                 {mode === 'absolute' ? (
                   <rect
-                    x={x - 5}
-                    y={top}
+                    x={layout.x - 5}
+                    y={layout.top}
                     width={10}
-                    height={Math.max(2, residualPx)}
+                    height={Math.max(2, layout.residualPx)}
                     fill="var(--color-info)"
                     opacity={0.35}
                     rx={2}
                   />
                 ) : (
                   <rect
-                    x={clamp(x + 10, PAD.left, PAD.left + plotW - Math.max(8, residualPx))}
-                    y={clamp(top, PAD.top, PAD.top + plotH - Math.max(8, residualPx))}
-                    width={Math.max(8, residualPx)}
-                    height={Math.max(8, residualPx)}
+                    x={layout.squareX}
+                    y={layout.top}
+                    width={layout.squareSide}
+                    height={layout.squareSide}
                     fill="var(--color-error)"
-                    opacity={0.22}
-                    rx={4}
+                    stroke="var(--color-error)"
+                    strokeWidth={1}
+                    opacity={0.18}
                   />
                 )}
 
-                <circle cx={x} cy={predictedPxY} r={3.5} fill="white" stroke="var(--primary)" strokeWidth={2} />
                 <circle
-                  cx={x}
-                  cy={pointPxY}
-                  r={isDraggable ? 7 : 5}
-                  fill={isDraggable ? 'var(--color-error)' : 'var(--foreground)'}
+                  cx={layout.x}
+                  cy={layout.predictedPxY}
+                  r={3.5}
+                  fill="white"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                />
+                <circle
+                  cx={layout.x}
+                  cy={layout.pointPxY}
+                  r={layout.isDraggable ? 7 : 5}
+                  fill={layout.isDraggable ? 'var(--color-error)' : 'var(--foreground)'}
                   stroke="white"
                   strokeWidth={2}
-                  className={isDraggable ? 'cursor-grab active:cursor-grabbing' : undefined}
+                  className={layout.isDraggable ? 'cursor-grab active:cursor-grabbing' : undefined}
                   onPointerDown={(event) => {
-                    if (!isDraggable) return;
+                    if (!layout.isDraggable) return;
                     event.preventDefault();
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    activePointerIdRef.current = event.pointerId;
                     setDragging(true);
                   }}
+                  onPointerUp={releaseDrag}
+                  onPointerCancel={releaseDrag}
                 />
-                {isDraggable && (
-                  <text x={x + 14} y={pointPxY - 10} fill="var(--color-error)" fontSize={11} fontWeight={600}>
+                {layout.isDraggable && (
+                  <text
+                    x={layout.x + 14}
+                    y={layout.pointPxY - 10}
+                    fill="var(--color-error)"
+                    fontSize={11}
+                    fontWeight={600}
+                  >
                     drag me
                   </text>
                 )}
@@ -247,7 +292,7 @@ export default function ResidualSquaresViz() {
       <div className="rounded-xl border border-dashed p-3 text-sm text-muted-foreground">
         {mode === 'absolute'
           ? 'Absolute error uses the vertical gap itself. Every miss grows linearly with residual size.'
-          : 'Squared error uses a square whose side is the residual. A big outlier creates a much larger area, so MSE reacts strongly.'}
+          : 'Squared error builds a square on the residual itself. Big misses create much larger areas, so MSE reacts strongly.'}
       </div>
     </div>
   );

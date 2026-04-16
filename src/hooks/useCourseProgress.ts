@@ -11,7 +11,7 @@ export interface TopicProgress {
 function getSnapshot(): Map<string, TopicProgress> {
   const map = new Map<string, TopicProgress>();
   for (const topic of NAV_TOPICS) {
-    if (topic.locked || topic.sections.length === 0) continue;
+    if (topic.locked || topic.sections.length === 0 || topic.countInProgress === false) continue;
     let visited = 0;
     for (const section of topic.sections) {
       if (localStorage.getItem(`visited-${topic.id}-${section.id}`)) visited++;
@@ -26,7 +26,7 @@ function getSnapshot(): Map<string, TopicProgress> {
 function getSnapshotKey(): string {
   let key = '';
   for (const topic of NAV_TOPICS) {
-    if (topic.locked || topic.sections.length === 0) continue;
+    if (topic.locked || topic.sections.length === 0 || topic.countInProgress === false) continue;
     let visited = 0;
     for (const section of topic.sections) {
       if (localStorage.getItem(`visited-${topic.id}-${section.id}`)) visited++;
@@ -44,7 +44,7 @@ export function useCourseProgress(): Map<string, TopicProgress> {
 
 export function getTopicProgress(topicId: string): TopicProgress {
   const topic = NAV_TOPICS.find((t) => t.id === topicId);
-  if (!topic || topic.sections.length === 0) return { visited: 0, total: 0, pct: 0 };
+  if (!topic || topic.sections.length === 0 || topic.countInProgress === false) return { visited: 0, total: 0, pct: 0 };
   let visited = 0;
   for (const section of topic.sections) {
     if (localStorage.getItem(`visited-${topic.id}-${section.id}`)) visited++;

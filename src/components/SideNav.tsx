@@ -73,7 +73,7 @@ export default function SideNav({ activeTopic, activeSection }: SideNavProps) {
   }, [navigate, closeMobileSidebar]);
 
   const handleSectionClick = useCallback((topicId: string, sectionId: string) => {
-    navigate(`/${topicId}#${sectionId}`);
+    navigate({ pathname: `/${topicId}`, hash: `#${sectionId}` });
     closeMobileSidebar();
   }, [navigate, closeMobileSidebar]);
 
@@ -169,20 +169,17 @@ export default function SideNav({ activeTopic, activeSection }: SideNavProps) {
                           const isSectionVisited = !!localStorage.getItem(`visited-${topic.id}-${section.id}`);
                           return (
                             <SidebarMenuSubItem key={`${topic.id}/${section.id}`}>
-                              <SidebarMenuSubButton
-                                isActive={isSectionActive}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleSectionClick(topic.id, section.id);
-                                }}
-                                href={`#/${topic.id}#${section.id}`}
-                                size="sm"
-                              >
-                                {isSectionVisited && !isSectionActive && (
-                                  <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
-                                )}
-                                <span className="text-muted-foreground font-mono text-xs">{section.number}</span>
-                                <span>{section.title}</span>
+                              <SidebarMenuSubButton asChild isActive={isSectionActive} size="sm">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSectionClick(topic.id, section.id)}
+                                >
+                                  {isSectionVisited && !isSectionActive && (
+                                    <span className="size-1.5 rounded-full bg-green-500 shrink-0" />
+                                  )}
+                                  <span className="text-muted-foreground font-mono text-xs">{section.number}</span>
+                                  <span>{section.title}</span>
+                                </button>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           );

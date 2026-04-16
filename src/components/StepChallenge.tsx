@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronRight } from 'lucide-react';
 import { useLabProgress } from '@/hooks/useLabProgress';
@@ -12,14 +12,24 @@ export interface StepDef {
 interface StepChallengeProps {
   exerciseId: string;
   steps: StepDef[];
+  onAllComplete?: () => void;
 }
 
-export default function StepChallenge({ exerciseId, steps }: StepChallengeProps) {
+export default function StepChallenge({ exerciseId, steps, onAllComplete }: StepChallengeProps) {
   const { isStepComplete, markStepComplete } = useLabProgress(exerciseId, steps.length);
+  const allDone = steps.every((step) => isStepComplete(step.id));
+  const [reportedDone, setReportedDone] = useState(false);
 
   // Find first incomplete step
   const firstIncomplete = steps.findIndex((s) => !isStepComplete(s.id));
   const [activeStep, setActiveStep] = useState(firstIncomplete === -1 ? steps.length - 1 : firstIncomplete);
+
+  useEffect(() => {
+    if (allDone && !reportedDone) {
+      setReportedDone(true);
+      onAllComplete?.();
+    }
+  }, [allDone, onAllComplete, reportedDone]);
 
   const handleComplete = (stepId: number) => {
     markStepComplete(stepId);

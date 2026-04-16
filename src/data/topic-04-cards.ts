@@ -33,6 +33,8 @@ export interface LessonCardDef {
   component: string;
   /** If true, card auto-completes when rendered (no interaction needed) */
   autoComplete?: boolean;
+  /** If true, the learner must finish the interaction before continuing */
+  requiresCompletion?: boolean;
 }
 
 export const CARDS: LessonCardDef[] = [

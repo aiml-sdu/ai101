@@ -15,6 +15,7 @@ const TOPIC_EXERCISES: Record<string, { id: string; steps: number }[]> = {
   'topic-03': [{ id: 'lab-t03-ex1', steps: 4 }, { id: 'lab-t03-ex2', steps: 3 }, { id: 'lab-t03-ex3', steps: 3 }],
   'topic-04': [{ id: 'lab3-ex1', steps: 6 }, { id: 'lab3-ex2', steps: 4 }, { id: 'lab3-ex3', steps: 3 }],
   'topic-05': [{ id: 'lab4-ex1', steps: 4 }, { id: 'lab4-ex2', steps: 4 }, { id: 'lab4-ex3', steps: 3 }],
+  'topic-10': [{ id: 'lab10-ex1', steps: 3 }, { id: 'lab10-ex2', steps: 3 }, { id: 'lab10-ex3', steps: 3 }],
 };
 
 export default function ContentOutline({
@@ -28,7 +29,7 @@ export default function ContentOutline({
   if (!topic || topic.sections.length === 0) return null;
 
   const handleClick = (sectionId: string) => {
-    navigate(`/${topicId}#${sectionId}`);
+    navigate({ pathname: `/${topicId}`, hash: `#${sectionId}` });
   };
 
   const exercises = TOPIC_EXERCISES[topicId];

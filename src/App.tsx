@@ -13,6 +13,22 @@ const Topic06AdversarialPage = lazy(() => import('./pages/Topic06AdversarialPage
 const Topic07ConstraintPage = lazy(() => import('./pages/Topic07ConstraintPage.tsx'));
 const Topic08ProbabilityPage = lazy(() => import('./pages/Topic08ProbabilityPage.tsx'));
 const Topic09HMMPage = lazy(() => import('./pages/Topic09HMMPage.tsx'));
+const Topic10RegressionPage = lazy(() => import('./pages/Topic10RegressionPage.tsx'));
+const MlSetupPage = lazy(() => import('./pages/MlSetupPage.tsx'));
+
+function normalizeLegacyHashUrl() {
+  if (typeof window === 'undefined') return;
+  const { hash, pathname, search } = window.location;
+  const legacyMatch = hash.match(/^#\/([^?#]+)%23([^?#]+)/);
+
+  if (!legacyMatch) return;
+
+  const [, rawPath, rawSection] = legacyMatch;
+  const normalizedHash = `#/${rawPath}#${decodeURIComponent(rawSection)}`;
+  window.history.replaceState(null, '', `${pathname}${search}${normalizedHash}`);
+}
+
+normalizeLegacyHashUrl();
 
 function NotReleasedPage() {
   const navigate = useNavigate();
@@ -117,6 +133,22 @@ const router = createHashRouter([
         element: (
           <Suspense fallback={null}>
             <Topic09HMMPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'topic-10',
+        element: (
+          <Suspense fallback={null}>
+            <Topic10RegressionPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'ml-setup',
+        element: (
+          <Suspense fallback={null}>
+            <MlSetupPage />
           </Suspense>
         ),
       },

@@ -63,7 +63,7 @@ export default function NavSearch() {
 
   const selectResult = useCallback((r: SearchResult) => {
     if (r.sectionId) {
-      navigate(`/${r.topicId}#${r.sectionId}`);
+      navigate({ pathname: `/${r.topicId}`, hash: `#${r.sectionId}` });
     } else {
       navigate(`/${r.topicId}`);
     }

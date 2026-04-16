@@ -34,16 +34,39 @@ interface LessonStepperProps {
   sections: CardSection[];
   storagePrefix: string;
   renderCard: (index: number, onComplete: () => void) => ReactNode;
+  enforceRequiredCompletion?: boolean;
 }
 
-export default function LessonStepper({ cards, sections, storagePrefix, renderCard }: LessonStepperProps) {
+export default function LessonStepper({
+  cards,
+  sections,
+  storagePrefix,
+  renderCard,
+  enforceRequiredCompletion = true,
+}: LessonStepperProps) {
   const [currentIndex, setCurrentIndex] = useState(() => loadCurrent(storagePrefix, cards.length));
   const [completedSet, setCompletedSet] = useState(() => loadCompleted(storagePrefix));
+  const maxUnlockedIndex = useMemo(() => {
+    if (!enforceRequiredCompletion) return cards.length - 1;
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      if (card.requiresCompletion && !completedSet.has(card.id)) {
+        return i;
+      }
+    }
+    return cards.length - 1;
+  }, [cards, completedSet, enforceRequiredCompletion]);
 
   // Persist current index
   useEffect(() => {
     localStorage.setItem(`${storagePrefix}-current`, String(currentIndex));
   }, [currentIndex, storagePrefix]);
+
+  useEffect(() => {
+    if (currentIndex > maxUnlockedIndex) {
+      setCurrentIndex(maxUnlockedIndex);
+    }
+  }, [currentIndex, maxUnlockedIndex]);
 
   const markComplete = useCallback(() => {
     setCompletedSet((prev) => {
@@ -63,8 +86,8 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
   }, []);
 
   const jumpTo = useCallback((idx: number) => {
-    if (idx >= 0 && idx < cards.length) setCurrentIndex(idx);
-  }, [cards.length]);
+    if (idx >= 0 && idx <= maxUnlockedIndex) setCurrentIndex(idx);
+  }, [maxUnlockedIndex]);
 
   // Auto-complete informational cards that don't require user interaction
   useEffect(() => {
@@ -99,6 +122,8 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
     () => sections.find((s) => s.id === card.sectionId),
     [card.sectionId, sections],
   );
+  const currentComplete = completedSet.has(card.id);
+  const continueLocked = enforceRequiredCompletion && !!card.requiresCompletion && !currentComplete;
 
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === cards.length - 1;
@@ -115,6 +140,7 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
         sections={sections}
         currentIndex={currentIndex}
         completedSet={completedSet}
+        maxUnlockedIndex={maxUnlockedIndex}
         onJump={jumpTo}
       />
 
@@ -151,8 +177,12 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
 
         <Button
           size="sm"
+          disabled={continueLocked}
           onClick={() => {
-            markComplete();
+            if (continueLocked) return;
+            if (currentComplete || card.autoComplete || !card.requiresCompletion) {
+              markComplete();
+            }
             if (!isLast) goNext();
           }}
           className="gap-1.5"
@@ -161,6 +191,11 @@ export default function LessonStepper({ cards, sections, storagePrefix, renderCa
           {!isLast && <ChevronRight className="size-4" />}
         </Button>
       </div>
+      {continueLocked && (
+        <p className="pb-2 text-sm text-muted-foreground">
+          Complete this interaction to continue.
+        </p>
+      )}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 interface QuizCardProps {
   questions: QuizQuestion[];
+  onComplete?: () => void;
 }
 
 export { type QuizQuestion };
@@ -21,7 +22,7 @@ function fireConfetti(big?: boolean) {
   confetti(opts);
 }
 
-export default function QuizCard({ questions }: QuizCardProps) {
+export default function QuizCard({ questions, onComplete }: QuizCardProps) {
   const { streak, recordCorrect, recordWrong } = useGamification();
 
   const onResult = useCallback(
@@ -41,6 +42,7 @@ export default function QuizCard({ questions }: QuizCardProps) {
   // Init to true if all questions were already answered (from localStorage)
   // so we don't replay confetti on page load
   const perfectFired = useRef(states.every((s) => s.submitted));
+  const completionFired = useRef(false);
 
   if (questions.length === 0) return null;
 
@@ -59,6 +61,13 @@ export default function QuizCard({ questions }: QuizCardProps) {
       setTimeout(() => fireConfetti(true), 400);
     }
   }, [isPerfect, isMulti]);
+
+  useEffect(() => {
+    if (allSubmitted && !completionFired.current) {
+      completionFired.current = true;
+      onComplete?.();
+    }
+  }, [allSubmitted, onComplete]);
 
   return (
     <Card className="my-6">

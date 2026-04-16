@@ -10,6 +10,7 @@ export interface NavTopic {
   title: string;
   sections: NavSection[];
   locked?: boolean;
+  countInProgress?: boolean;
 }
 
 export const NAV_TOPICS: NavTopic[] = [
@@ -147,21 +148,40 @@ export const NAV_TOPICS: NavTopic[] = [
   {
     id: 'topic-10',
     number: 10,
-    title: 'Introduction to Machine Learning',
-    locked: true,
-    sections: [],
+    title: 'Regression',
+    locked: false,
+    sections: [
+      { id: 'why', number: '10.1', title: 'Introduction to ML' },
+      { id: 'basics', number: '10.2', title: 'What Counts as Regression' },
+      { id: 'line', number: '10.3', title: 'Fit a Line' },
+      { id: 'multi', number: '10.4', title: 'More Than One Feature' },
+      { id: 'fit-quality', number: '10.5', title: 'When Fits Go Wrong' },
+      { id: 'lab', number: 'Lab', title: 'Lab 1' },
+    ],
+  },
+  {
+    id: 'ml-setup',
+    number: 0,
+    title: 'ML Setup (Conda)',
+    countInProgress: false,
+    sections: [
+      { id: 'why', number: '1', title: 'Why Environments Matter' },
+      { id: 'env', number: '2', title: 'Create and Activate' },
+      { id: 'packages', number: '3', title: 'Install Notebook Tools' },
+      { id: 'notebook', number: '4', title: 'Launch the Regression Lab' },
+    ],
   },
   {
     id: 'topic-11',
     number: 11,
-    title: 'ML Regression',
+    title: 'Classification',
     locked: true,
     sections: [],
   },
   {
     id: 'topic-12',
     number: 12,
-    title: 'ML Clustering & Review',
+    title: 'K-Nearest Neighbors',
     locked: true,
     sections: [],
   },

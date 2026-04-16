@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, TerminalSquare } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 import { NAV_TOPICS } from '@/data/nav-topics';
@@ -19,9 +19,9 @@ const DESCRIPTIONS: Record<string, string> = {
   'topic-07': 'CSPs, backtracking, and constraint propagation',
   'topic-08': 'Probability, Bayes\' rule, and Bayesian Networks',
   'topic-09': 'Temporal models and sequence prediction',
-  'topic-10': 'Supervised and unsupervised learning fundamentals',
-  'topic-11': 'Linear and polynomial regression models',
-  'topic-12': 'K-means, hierarchical clustering, and course review',
+  'topic-10': 'Supervised prediction, line fitting, and diagnosing good vs bad fits',
+  'topic-11': 'Decision trees, random forests, and classification boundaries',
+  'topic-12': 'Distance-based classification with K-nearest neighbors',
 };
 
 const NODE_SIZE = 64;
@@ -51,6 +51,8 @@ export default function WelcomePage() {
   const progress = useCourseProgress();
   const isSmall = useIsSmall();
   const AMP = isSmall ? 40 : 100;
+  const plannedTopicCount = NAV_TOPICS.filter((t) => t.number > 0).length;
+  const unlockedTopicCount = NAV_TOPICS.filter((t) => t.number > 0 && !t.locked).length;
 
   // Review mode: enabled if user is signed in OR if VITE_REVIEW_MODE env var is set
   const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
@@ -97,7 +99,7 @@ export default function WelcomePage() {
           An Interactive Course in Artificial Intelligence
         </p>
         <p className="text-xs text-muted-foreground/70 mt-3 max-w-md mx-auto leading-relaxed">
-          12 topics planned &middot; 3 available now. Built with Claude Opus 4.6.
+          {plannedTopicCount} topics planned &middot; {unlockedTopicCount} unlocked now. Built with Claude Opus 4.6.
           <br />
           Content reviewed and verified by TAs and Professor.
           <br />
@@ -109,6 +111,31 @@ export default function WelcomePage() {
             phkon23@student.sdu.dk
           </a>
         </p>
+      </section>
+
+      <section className="mb-8">
+        <Link
+          to="/ml-setup"
+          className="not-prose block rounded-2xl border bg-card p-5 transition-colors hover:bg-muted/30"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <TerminalSquare className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Before Lab 1
+              </p>
+              <h2 className="mt-1 text-lg font-semibold tracking-tight">
+                Set up Conda and Jupyter for the regression notebook
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                A short setup lesson with the exact commands students need before opening
+                <span className="font-mono"> lab1-regression</span>.
+              </p>
+            </div>
+          </div>
+        </Link>
       </section>
 
       {/* Overall progress */}

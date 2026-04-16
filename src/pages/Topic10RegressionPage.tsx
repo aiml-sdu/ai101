@@ -13,7 +13,6 @@ import LessonStepper from '@/components/LessonStepper';
 import LessonCard from '@/components/LessonCard';
 import QuizCard from '@/components/QuizCard';
 import CalloutBox from '@/components/CalloutBox';
-import ExerciseCard from '@/components/ExerciseCard';
 import { M, BlockMath } from '@/components/Math';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -23,22 +22,34 @@ import {
   QUIZ_102,
   QUIZ_103,
   QUIZ_104,
-  QUIZ_105,
   SECTIONS,
 } from '@/data/topic-10-cards';
 import { generateLinearData, olsFit } from '@/lib/regression-math';
 
 const FitTheLineGame = lazy(() => import('./visualizations/FitTheLineGame'));
 const ResidualSquaresViz = lazy(() => import('./visualizations/ResidualSquaresViz'));
-const Exercise1HousingExplore = lazy(() => import('./visualizations/lab/Exercise1HousingExplore'));
-const Exercise2SimpleVsMultipleRegression = lazy(
-  () => import('./visualizations/lab/Exercise2SimpleVsMultipleRegression'),
-);
-const Exercise3FitDiagnosis = lazy(() => import('./visualizations/lab/Exercise3FitDiagnosis'));
+
+const PARADIGM_THEME = {
+  unsupervised: {
+    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+    border: 'border-amber-500/40',
+    active: 'border-amber-500 bg-amber-500/10',
+  },
+  reinforcement: {
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+    border: 'border-emerald-500/40',
+    active: 'border-emerald-500 bg-emerald-500/10',
+  },
+  supervised: {
+    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+    border: 'border-blue-500/40',
+    active: 'border-blue-500 bg-blue-500/10',
+  },
+} as const;
 
 function VizLoading() {
   return (
-    <div className="flex h-64 items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground animate-pulse">
+    <div className="flex h-64 items-center justify-center rounded-3xl bg-muted text-sm text-muted-foreground animate-pulse">
       Loading visualization...
     </div>
   );
@@ -86,7 +97,7 @@ function ChoiceExercise({ prompt, options, onComplete, supporting }: ChoiceExerc
             onClick={() => !submitted && setSelected(option.id)}
             disabled={submitted}
             className={cn(
-              'rounded-xl border p-4 text-left transition-colors',
+              'rounded-2xl border p-4 text-left transition-colors',
               selected === option.id && !submitted && 'border-primary bg-primary/5',
               submitted && option.correct && 'border-green-500 bg-green-500/10',
               submitted && selected === option.id && !option.correct && 'border-red-500 bg-red-500/10',
@@ -124,6 +135,41 @@ function ChoiceExercise({ prompt, options, onComplete, supporting }: ChoiceExerc
         </div>
       )}
     </div>
+  );
+}
+
+function Surface({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        'rounded-[28px] border border-border/70 bg-gradient-to-br from-card via-card to-muted/20 p-5 shadow-sm',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Tag({
+  label,
+  tone = 'default',
+}: {
+  label: string;
+  tone?: 'default' | 'blue' | 'emerald' | 'amber' | 'violet';
+}) {
+  const styles = {
+    default: 'bg-muted text-muted-foreground',
+    blue: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+    emerald: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
+    amber: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+    violet: 'bg-violet-500/15 text-violet-700 dark:text-violet-300',
+  } as const;
+
+  return (
+    <span className={cn('rounded-full px-2.5 py-1 text-[11px] font-medium', styles[tone])}>
+      {label}
+    </span>
   );
 }
 
@@ -167,7 +213,7 @@ function PriceGuessHookContent({ onComplete }: { onComplete: () => void }) {
       <p>
         This is the core regression move: you see examples, then try to predict a new number. Click on the chart to guess the price for the marked house.
       </p>
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <Surface className="overflow-hidden p-0">
         <svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
           className="w-full cursor-crosshair"
@@ -219,7 +265,7 @@ function PriceGuessHookContent({ onComplete }: { onComplete: () => void }) {
             </>
           )}
         </svg>
-      </div>
+      </Surface>
       {guess !== null && (
         <CalloutBox
           type={Math.abs(guess - trueY) < 8 ? 'tip' : 'info'}
@@ -235,101 +281,232 @@ function PriceGuessHookContent({ onComplete }: { onComplete: () => void }) {
   );
 }
 
+function MLDefinitionHook({ onComplete }: { onComplete: () => void }) {
+  const prompts = [
+    {
+      id: 'spam',
+      title: 'Filter spam emails',
+      prompt: 'Millions of messages, messy language, and new tricks every week.',
+      answer: 'learn',
+      explanation: 'This is a learning problem. Writing fixed rules for every spam tactic breaks down quickly.',
+    },
+    {
+      id: 'tax',
+      title: 'Apply a tax bracket table',
+      prompt: 'The thresholds are explicit and the logic is fixed by policy.',
+      answer: 'rules',
+      explanation: 'This is a rule-driven task. The logic is explicit, stable, and easy to hand-code.',
+    },
+    {
+      id: 'chess',
+      title: 'Choose strong chess moves',
+      prompt: 'Too many board states to hand-code all good decisions.',
+      answer: 'learn',
+      explanation: 'This is the lecture’s experience-driven case: learn from rewards and outcomes instead of enumerating every rule.',
+    },
+    {
+      id: 'turnstile',
+      title: 'Open a turnstile',
+      prompt: 'If the ticket is valid, unlock. If not, stay closed.',
+      answer: 'rules',
+      explanation: 'This logic is crisp and explicit. No learning system is needed.',
+    },
+  ] as const;
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [didComplete, setDidComplete] = useState(false);
+  const allAnswered = prompts.every((prompt) => answers[prompt.id]);
+
+  useEffect(() => {
+    if (allAnswered && !didComplete) {
+      setDidComplete(true);
+      onComplete();
+    }
+  }, [allAnswered, didComplete, onComplete]);
+
+  return (
+    <div className="space-y-4">
+      <p>
+        Before the formal definition, start with a sharper question: <strong>should we hand-write rules, or should the system learn from experience?</strong>
+      </p>
+      <Surface>
+        <div className="flex flex-wrap items-center gap-2">
+          <Tag label="Problem first" tone="violet" />
+          <Tag label="Rules vs experience" tone="blue" />
+        </div>
+        <div className="mt-4 grid gap-4">
+          {prompts.map((prompt) => {
+            const selected = answers[prompt.id];
+            const correct = selected === prompt.answer;
+            return (
+              <div
+                key={prompt.id}
+                className={cn(
+                  'rounded-2xl border p-4 transition-colors',
+                  selected && correct && 'border-green-500/40 bg-green-500/5',
+                  selected && !correct && 'border-red-500/40 bg-red-500/5',
+                )}
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="max-w-xl">
+                    <div className="text-sm font-semibold">{prompt.title}</div>
+                    <div className="mt-1 text-sm text-muted-foreground">{prompt.prompt}</div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      ['rules', 'Write explicit rules'],
+                      ['learn', 'Learn from experience'],
+                    ] as const).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setAnswers((prev) => ({ ...prev, [prompt.id]: value }))}
+                        className={cn(
+                          'rounded-full border px-3 py-2 text-sm transition-colors',
+                          selected === value ? 'border-primary bg-primary/10' : 'hover:bg-muted/60',
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {selected && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      'mt-3 rounded-xl px-3 py-2 text-sm',
+                      correct
+                        ? 'bg-green-500/10 text-green-700 dark:text-green-300'
+                        : 'bg-red-500/10 text-red-700 dark:text-red-300',
+                    )}
+                  >
+                    {prompt.explanation}
+                  </motion.div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Surface>
+      {allAnswered && (
+        <Surface className="grid gap-4 md:grid-cols-2">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Lecture definition
+            </div>
+            <div className="mt-3 text-lg font-semibold">
+              Getting a computer to do well on a task without explicitly programming it.
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Experience matters
+            </div>
+            <div className="mt-3 text-lg font-semibold">
+              Improving performance on a task based on experience.
+            </div>
+          </div>
+        </Surface>
+      )}
+    </div>
+  );
+}
+
 function ParadigmPlayground({ onComplete }: { onComplete: () => void }) {
   const scenarios = [
     {
       id: 'cluster',
-      title: 'Group unlabeled examples',
-      prompt: 'You only have raw measurements and want to cluster similar examples together.',
+      title: 'Cluster unlabeled data',
+      prompt: 'You only have raw measurements and want to group similar examples together.',
       answer: 'unsupervised',
       explanation: 'Unsupervised learning is about structure in unlabeled data: clustering, outliers, generation, and filling in missing data.',
     },
     {
       id: 'chess',
-      title: 'Learn by rewards',
-      prompt: 'An agent explores chess positions, takes actions, and receives rewards for good outcomes.',
+      title: 'Learn chess from rewards',
+      prompt: 'The agent sees board states, makes moves, and gets rewards from what happens next.',
       answer: 'reinforcement',
-      explanation: 'Reinforcement learning uses states, actions, and rewards. The chess example on the slide is the template.',
+      explanation: 'Reinforcement learning uses states, actions, and rewards. The chess example in the slide is the template.',
     },
     {
       id: 'price',
       title: 'Predict from paired examples',
-      prompt: 'Each house has features and a known selling price, and the model must learn the mapping.',
+      prompt: 'Each house already has features and a known selling price.',
       answer: 'supervised',
-      explanation: 'Supervised learning uses paired input/output examples. Topic 10 takes this branch and goes deeper on regression.',
+      explanation: 'Supervised learning uses paired input/output data. Topic 10 follows this branch and then zooms in on regression.',
     },
   ] as const;
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [didComplete, setDidComplete] = useState(false);
+  const allAnswered = scenarios.every((scenario) => answers[scenario.id]);
 
   useEffect(() => {
-    const allCorrect = scenarios.every((scenario) => answers[scenario.id] === scenario.answer);
-    if (allCorrect && !didComplete) {
+    if (allAnswered && !didComplete) {
       setDidComplete(true);
       onComplete();
     }
-  }, [answers, didComplete, onComplete, scenarios]);
+  }, [allAnswered, didComplete, onComplete]);
 
   return (
     <div className="space-y-4">
       <p>
-        The lecture opens with a broad idea: <strong>machine learning</strong> means getting a computer to do well on a task without explicitly programming every rule, and improving from experience.
+        The lecture immediately splits ML into three big paradigms. The point is not the model name yet. The point is <strong>what kind of feedback the learner gets</strong>.
       </p>
-      <div className="rounded-xl border bg-card p-4">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Paradigm playground
+      <Surface>
+        <div className="grid gap-2 md:grid-cols-3">
+          <div className={cn('rounded-2xl border px-4 py-3', PARADIGM_THEME.unsupervised.border)}>
+            <div className="text-sm font-semibold">Unsupervised</div>
+            <div className="mt-1 text-xs text-muted-foreground">No labels, find structure</div>
+          </div>
+          <div className={cn('rounded-2xl border px-4 py-3', PARADIGM_THEME.reinforcement.border)}>
+            <div className="text-sm font-semibold">Reinforcement</div>
+            <div className="mt-1 text-xs text-muted-foreground">Actions and rewards over time</div>
+          </div>
+          <div className={cn('rounded-2xl border px-4 py-3', PARADIGM_THEME.supervised.border)}>
+            <div className="text-sm font-semibold">Supervised</div>
+            <div className="mt-1 text-xs text-muted-foreground">Paired input and output</div>
+          </div>
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Match each lecture scenario to the right learning paradigm. You can keep skimming even if you do not finish it.
-        </p>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        {scenarios.map((scenario) => {
-          const selected = answers[scenario.id];
-          const isCorrect = selected === scenario.answer;
-          const isWrong = !!selected && !isCorrect;
 
-          return (
-            <motion.div
-              key={scenario.id}
-              layout
-              className={cn(
-                'rounded-2xl border bg-card p-4 shadow-sm',
-                isCorrect && 'border-green-500/60',
-                isWrong && 'border-red-500/50',
-              )}
-            >
-              <div className="text-sm font-semibold">{scenario.title}</div>
-              <p className="mt-2 text-sm text-muted-foreground">{scenario.prompt}</p>
-              <div className="mt-4 grid gap-2">
-                {([
-                  ['unsupervised', 'Unsupervised'],
-                  ['reinforcement', 'Reinforcement'],
-                  ['supervised', 'Supervised'],
-                ] as const).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setAnswers((prev) => ({ ...prev, [scenario.id]: value }))}
-                    className={cn(
-                      'rounded-xl border px-3 py-2 text-left text-sm transition-colors',
-                      selected === value ? 'border-primary bg-primary/10' : 'hover:bg-muted/60',
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <AnimatePresence initial={false}>
+        <div className="mt-4 space-y-4">
+          {scenarios.map((scenario) => {
+            const selected = answers[scenario.id];
+            const correct = selected === scenario.answer;
+            return (
+              <div key={scenario.id} className="rounded-2xl border p-4">
+                <div className="text-sm font-semibold">{scenario.title}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{scenario.prompt}</div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {([
+                    ['unsupervised', 'Unsupervised'],
+                    ['reinforcement', 'Reinforcement'],
+                    ['supervised', 'Supervised'],
+                  ] as const).map(([value, label]) => {
+                    const theme = PARADIGM_THEME[value];
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setAnswers((prev) => ({ ...prev, [scenario.id]: value }))}
+                        className={cn(
+                          'rounded-full border px-3 py-2 text-sm transition-colors',
+                          theme.border,
+                          selected === value ? theme.active : 'hover:bg-muted/60',
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
                 {selected && (
                   <motion.div
-                    key={`${scenario.id}-${selected}`}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
                     className={cn(
-                      'mt-4 rounded-xl px-3 py-2 text-sm',
-                      isCorrect
+                      'mt-3 rounded-xl px-3 py-2 text-sm',
+                      correct
                         ? 'bg-green-500/10 text-green-700 dark:text-green-300'
                         : 'bg-red-500/10 text-red-700 dark:text-red-300',
                     )}
@@ -337,18 +514,140 @@ function ParadigmPlayground({ onComplete }: { onComplete: () => void }) {
                     {scenario.explanation}
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
-      </div>
-      {didComplete && (
-        <CalloutBox type="key-idea" title="Why Topic 10 Zooms In">
-          <p>
-            After this overview, the rest of Topic 10 follows the supervised branch and focuses on regression, where the output is a continuous value.
-          </p>
-        </CalloutBox>
-      )}
+              </div>
+            );
+          })}
+        </div>
+      </Surface>
+    </div>
+  );
+}
+
+function ReinforcementLoopGame({ onComplete }: { onComplete: () => void }) {
+  const paths = {
+    exploit: {
+      label: 'Repeat the known opening',
+      mode: 'Exploit',
+      immediateReward: '+2 now',
+      nextState: 'Predictable middlegame',
+      delayedReward: '+1 later',
+      summary: 'You cash in a small immediate reward, but you learn very little about better options.',
+    },
+    explore: {
+      label: 'Try a new opening line',
+      mode: 'Explore',
+      immediateReward: '0 now',
+      nextState: 'Unfamiliar but promising position',
+      delayedReward: '+4 later',
+      summary: 'No reward arrives immediately, but the delayed reward is larger once the new line starts working.',
+    },
+  } as const;
+  const [selectedId, setSelectedId] = useState<keyof typeof paths | null>(null);
+  const [didComplete, setDidComplete] = useState(false);
+  const selected = selectedId ? paths[selectedId] : null;
+
+  useEffect(() => {
+    if (selectedId && !didComplete) {
+      setDidComplete(true);
+      onComplete();
+    }
+  }, [didComplete, onComplete, selectedId]);
+
+  return (
+    <div className="space-y-4">
+      <p>
+        RL is different because the agent must <strong>act to collect data</strong>. The hard part is that rewards can arrive later, so it is not always obvious which action deserved the credit.
+      </p>
+      <Surface>
+        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                Opening state
+              </div>
+              <div className="mt-2 text-lg font-semibold">Choose one move</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Do you exploit the safe move you already trust, or explore a new line that might pay off later?
+              </div>
+            </div>
+            {(Object.entries(paths) as [keyof typeof paths, (typeof paths)[keyof typeof paths]][]).map(([key, path]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelectedId(key)}
+                className={cn(
+                  'w-full rounded-2xl border p-4 text-left transition-colors',
+                  selectedId === key ? 'border-primary bg-primary/5' : 'hover:bg-muted/60',
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold">{path.label}</div>
+                  <Tag label={path.mode} tone={key === 'exploit' ? 'amber' : 'emerald'} />
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Immediate reward: {path.immediateReward}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div className="rounded-[24px] border border-border/70 bg-background/70 p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {'State -> action -> reward -> next state'}
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              {[
+                { title: 'State', value: 'Opening board' },
+                { title: 'Action', value: selected ? selected.label : 'Pick a move' },
+                { title: 'Reward', value: selected ? selected.immediateReward : '?' },
+                { title: 'Next state', value: selected ? selected.nextState : '?' },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0.4, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="rounded-2xl border p-3"
+                >
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    {item.title}
+                  </div>
+                  <div className="mt-2 text-sm font-medium">{item.value}</div>
+                </motion.div>
+              ))}
+            </div>
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={selectedId ?? 'empty'}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-4 rounded-2xl border bg-muted/40 p-4"
+              >
+                {selected ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Tag label={selected.mode === 'Explore' ? 'Exploration vs exploitation' : 'Greedy now'} tone={selected.mode === 'Explore' ? 'emerald' : 'amber'} />
+                      <Tag label={`Delayed reward: ${selected.delayedReward}`} tone="violet" />
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{selected.summary}</p>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Pick an action to watch the reward story unfold. The slide’s chess example is exactly this loop.
+                  </p>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+      </Surface>
+      <CalloutBox type="info" title="Why RL Is Hard">
+        <p>
+          The same action may not lead to the same outcome every time, and good rewards can arrive much later. That is the exploration-exploitation trade-off plus the temporal credit-assignment problem from the lecture.
+        </p>
+      </CalloutBox>
     </div>
   );
 }
@@ -365,39 +664,42 @@ function SupervisedModelExplorer({ onComplete }: { onComplete: () => void }) {
     {
       id: 'flat',
       label: 'Too flat',
-      equation: 'ŷ = 3x + 95',
+      equation: 'y = 3x + 95',
       slope: 3,
       intercept: 95,
+      color: 'var(--color-warning)',
       verdict: 'This family member misses the upward trend. It stays too flat as age increases.',
     },
     {
       id: 'fit',
       label: 'Best fit in this family',
-      equation: 'ŷ = 6x + 78',
+      equation: 'y = 6x + 78',
       slope: 6,
       intercept: 78,
+      color: 'var(--primary)',
       verdict: 'This candidate tracks the training points well. Learning means choosing this kind of equation from the family.',
     },
     {
       id: 'steep',
       label: 'Too steep',
-      equation: 'ŷ = 9x + 60',
+      equation: 'y = 9x + 60',
       slope: 9,
       intercept: 60,
+      color: 'var(--color-error)',
       verdict: 'This equation rises too quickly. It still belongs to the family, but it does not fit the training data well.',
     },
   ] as const;
   const [selectedId, setSelectedId] = useState<(typeof candidates)[number]['id'] | null>(null);
   const [didComplete, setDidComplete] = useState(false);
+  const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[1];
 
   useEffect(() => {
     if (selectedId && !didComplete) {
       setDidComplete(true);
       onComplete();
     }
-  }, [selectedId, didComplete, onComplete]);
+  }, [didComplete, onComplete, selectedId]);
 
-  const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[1];
   const averageResidual = (
     samples.reduce(
       (sum, sample) => sum + Math.abs(selected.slope * sample.age + selected.intercept - sample.height),
@@ -420,112 +722,112 @@ function SupervisedModelExplorer({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="space-y-4">
       <p>
-        The slide’s supervised-learning intuition is simple: imagine a family of equations relating an input like <strong>age</strong> to an output like <strong>height</strong>.
+        The supervised-learning slide uses one clean idea: search through a <strong>family of possible equations</strong>, then keep the one that fits the paired data best.
       </p>
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-2xl border bg-card p-4">
-          <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full">
-            <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + plotH} stroke="var(--border)" />
-            <line x1={PAD.left} y1={PAD.top + plotH} x2={PAD.left + plotW} y2={PAD.top + plotH} stroke="var(--border)" />
-            <text x={PAD.left + plotW / 2} y={VB_H - 8} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12}>Age</text>
-            <text
-              x={16}
-              y={PAD.top + plotH / 2}
-              textAnchor="middle"
-              fill="var(--muted-foreground)"
-              fontSize={12}
-              transform={`rotate(-90, 16, ${PAD.top + plotH / 2})`}
-            >
-              Height
-            </text>
-            {[5, 7, 9, 11, 13].map((age) => (
-              <g key={age}>
-                <line x1={sx(age)} y1={PAD.top} x2={sx(age)} y2={PAD.top + plotH} stroke="var(--border)" strokeWidth={0.5} strokeDasharray="4 4" />
-                <text x={sx(age)} y={PAD.top + plotH + 16} textAnchor="middle" fill="var(--muted-foreground)" fontSize={10}>{age}</text>
-              </g>
-            ))}
-            {[100, 120, 140, 160].map((height) => (
-              <g key={height}>
-                <line x1={PAD.left} y1={sy(height)} x2={PAD.left + plotW} y2={sy(height)} stroke="var(--border)" strokeWidth={0.5} strokeDasharray="4 4" />
-                <text x={PAD.left - 8} y={sy(height) + 4} textAnchor="end" fill="var(--muted-foreground)" fontSize={10}>{height}</text>
-              </g>
-            ))}
-            <line
-              x1={sx(xMin)}
-              y1={sy(selected.slope * xMin + selected.intercept)}
-              x2={sx(xMax)}
-              y2={sy(selected.slope * xMax + selected.intercept)}
-              stroke="var(--primary)"
-              strokeWidth={3}
-              strokeLinecap="round"
-            />
-            {samples.map((sample) => {
-              const predicted = selected.slope * sample.age + selected.intercept;
-              return (
-                <g key={`${sample.age}-${sample.height}`}>
-                  <line
-                    x1={sx(sample.age)}
-                    y1={sy(predicted)}
-                    x2={sx(sample.age)}
-                    y2={sy(sample.height)}
-                    stroke="var(--color-warning)"
-                    strokeWidth={2}
-                    strokeDasharray="5 4"
-                    opacity={0.75}
+      <Surface>
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[24px] border bg-background/70 p-4">
+            <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full">
+              <line x1={PAD.left} y1={PAD.top} x2={PAD.left} y2={PAD.top + plotH} stroke="var(--border)" />
+              <line x1={PAD.left} y1={PAD.top + plotH} x2={PAD.left + plotW} y2={PAD.top + plotH} stroke="var(--border)" />
+              <text x={PAD.left + plotW / 2} y={VB_H - 8} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12}>Age</text>
+              <text
+                x={16}
+                y={PAD.top + plotH / 2}
+                textAnchor="middle"
+                fill="var(--muted-foreground)"
+                fontSize={12}
+                transform={`rotate(-90, 16, ${PAD.top + plotH / 2})`}
+              >
+                Height
+              </text>
+              {candidates.map((candidate) => (
+                <line
+                  key={candidate.id}
+                  x1={sx(xMin)}
+                  y1={sy(candidate.slope * xMin + candidate.intercept)}
+                  x2={sx(xMax)}
+                  y2={sy(candidate.slope * xMax + candidate.intercept)}
+                  stroke={candidate.color}
+                  strokeWidth={selected.id === candidate.id ? 4 : 2}
+                  opacity={selected.id === candidate.id ? 1 : 0.18}
+                  strokeLinecap="round"
+                />
+              ))}
+              {samples.map((sample) => {
+                const predicted = selected.slope * sample.age + selected.intercept;
+                return (
+                  <g key={`${sample.age}-${sample.height}`}>
+                    <line
+                      x1={sx(sample.age)}
+                      y1={sy(predicted)}
+                      x2={sx(sample.age)}
+                      y2={sy(sample.height)}
+                      stroke="var(--color-warning)"
+                      strokeWidth={2}
+                      strokeDasharray="5 4"
+                      opacity={0.7}
+                    />
+                    <circle cx={sx(sample.age)} cy={sy(sample.height)} r={6} fill="white" stroke="var(--primary)" strokeWidth={2.5} />
+                    <circle cx={sx(sample.age)} cy={sy(predicted)} r={4.5} fill={selected.color} />
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          <div className="space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Family of candidate equations
+            </div>
+            {candidates.map((candidate) => (
+              <button
+                key={candidate.id}
+                type="button"
+                onClick={() => setSelectedId(candidate.id)}
+                className={cn(
+                  'w-full rounded-2xl border p-4 text-left transition-colors',
+                  selected.id === candidate.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/60',
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold">{candidate.label}</div>
+                  <div
+                    className="size-3 rounded-full"
+                    style={{ backgroundColor: candidate.color }}
                   />
-                  <circle cx={sx(sample.age)} cy={sy(sample.height)} r={6} fill="white" stroke="var(--primary)" strokeWidth={2.5} />
-                  <circle cx={sx(sample.age)} cy={sy(predicted)} r={4.5} fill="var(--primary)" />
-                </g>
-              );
-            })}
-          </svg>
+                </div>
+                <div className="mt-1 font-mono text-sm text-muted-foreground">{candidate.equation}</div>
+              </button>
+            ))}
+
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={selected.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="rounded-2xl border bg-background/70 p-4"
+              >
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Residual check
+                </div>
+                <div className="mt-2 text-sm font-semibold">{selected.label}</div>
+                <p className="mt-2 text-sm text-muted-foreground">{selected.verdict}</p>
+                <div className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-sm">
+                  Average training residual: <strong>{averageResidual}</strong>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-        <div className="space-y-3">
-          {candidates.map((candidate) => (
-            <button
-              key={candidate.id}
-              type="button"
-              onClick={() => setSelectedId(candidate.id)}
-              className={cn(
-                'w-full rounded-2xl border bg-card p-4 text-left transition-colors',
-                selected.id === candidate.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/60',
-              )}
-            >
-              <div className="text-sm font-semibold">{candidate.label}</div>
-              <div className="mt-1 font-mono text-sm text-muted-foreground">{candidate.equation}</div>
-            </button>
-          ))}
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={selected.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="rounded-2xl border bg-card p-4"
-            >
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Current candidate
-              </div>
-              <div className="mt-2 text-sm font-semibold">{selected.label}</div>
-              <p className="mt-2 text-sm text-muted-foreground">{selected.verdict}</p>
-              <div className="mt-3 rounded-xl bg-muted/60 px-3 py-2 text-sm">
-                Average training residual: <strong>{averageResidual}</strong>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-      <CalloutBox type="info" title="What the Slide Is Saying">
-        <p>
-          A supervised model is not one fixed equation. It is a search space of candidate equations, and learning means choosing the one that fits the paired training data best.
-        </p>
-      </CalloutBox>
+      </Surface>
     </div>
   );
 }
 
-function TaskOutputPreview({ taskId }: { taskId: string }) {
-  if (taskId === 'house-price') {
+function OutputPreview({ taskId }: { taskId: string }) {
+  if (taskId === 'price') {
     return (
       <div className="space-y-3">
         <div className="text-3xl font-semibold text-primary">$425k</div>
@@ -536,7 +838,7 @@ function TaskOutputPreview({ taskId }: { taskId: string }) {
     );
   }
 
-  if (taskId === 'text') {
+  if (taskId === 'sentiment') {
     return (
       <div className="flex flex-wrap gap-2">
         <span className="rounded-full bg-muted px-3 py-1 text-xs">NEGATIVE</span>
@@ -545,25 +847,44 @@ function TaskOutputPreview({ taskId }: { taskId: string }) {
     );
   }
 
-  if (taskId === 'translation') {
+  if (taskId === 'music') {
     return (
-      <div className="flex items-center gap-3 text-sm">
-        <span className="rounded-lg bg-muted px-3 py-2">Hello</span>
-        <span className="text-muted-foreground">→</span>
-        <span className="rounded-lg bg-primary px-3 py-2 font-semibold text-primary-foreground">Hej</span>
+      <div className="space-y-3">
+        <div className="flex h-16 items-end gap-1">
+          {[12, 32, 18, 40, 28, 46, 26, 36, 16, 30].map((height, index) => (
+            <div
+              key={index}
+              className={cn('w-4 rounded-t-md', index === 5 ? 'bg-primary' : 'bg-primary/35')}
+              style={{ height }}
+            />
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {['Jazz', 'Rock', 'Classical', 'Pop'].map((label, index) => (
+            <span
+              key={label}
+              className={cn(
+                'rounded-full px-3 py-1 text-xs',
+                index === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted',
+              )}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (taskId === 'segmentation') {
     return (
-      <div className="grid w-fit grid-cols-5 gap-1">
-        {Array.from({ length: 20 }, (_, index) => (
+      <div className="grid w-fit grid-cols-6 gap-1">
+        {Array.from({ length: 24 }, (_, index) => (
           <div
             key={index}
             className={cn(
               'size-4 rounded-sm',
-              index % 5 === 2 || index > 11 ? 'bg-primary' : 'bg-muted',
+              index % 6 === 2 || index % 6 === 3 || index > 15 ? 'bg-primary' : 'bg-muted',
             )}
           />
         ))}
@@ -571,9 +892,21 @@ function TaskOutputPreview({ taskId }: { taskId: string }) {
     );
   }
 
+  if (taskId === 'translation') {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-2xl bg-muted px-4 py-3 text-sm">Hello, how are you?</div>
+        <div className="flex justify-center text-muted-foreground">↓</div>
+        <div className="rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground">
+          Hej, hvordan har du det?
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
-      {['Class A', 'Class B', 'Class C', 'Class D'].map((label, index) => (
+      {['Cat', 'Dog', 'Car', 'Bike'].map((label, index) => (
         <span
           key={label}
           className={cn(
@@ -588,7 +921,210 @@ function TaskOutputPreview({ taskId }: { taskId: string }) {
   );
 }
 
-function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
+function OutputTypeArcade({ onComplete }: { onComplete: () => void }) {
+  const rounds = [
+    {
+      id: 'price',
+      title: 'Predict a house price',
+      prompt: 'The model outputs one numeric value.',
+      answer: 'univariate-regression',
+      why: 'One number means univariate regression.',
+    },
+    {
+      id: 'sentiment',
+      title: 'Label a review as positive or negative',
+      prompt: 'The model chooses between exactly two classes.',
+      answer: 'binary-classification',
+      why: 'Two discrete classes means binary classification.',
+    },
+    {
+      id: 'music',
+      title: 'Choose one music genre',
+      prompt: 'The model picks one label from many classes.',
+      answer: 'multiclass-classification',
+      why: 'Many discrete classes means multiclass classification.',
+    },
+    {
+      id: 'segmentation',
+      title: 'Label many pixels at once',
+      prompt: 'The model produces lots of outputs across the image.',
+      answer: 'multivariate-output',
+      why: 'Many outputs at the same time makes this a multivariate output problem.',
+    },
+  ] as const;
+  const options = [
+    { id: 'univariate-regression', label: 'Univariate regression' },
+    { id: 'binary-classification', label: 'Binary classification' },
+    { id: 'multiclass-classification', label: 'Multiclass classification' },
+    { id: 'multivariate-output', label: 'Multivariate output' },
+  ] as const;
+  const [index, setIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [didComplete, setDidComplete] = useState(false);
+  const round = rounds[index];
+
+  const handleCheck = () => {
+    if (!selectedId) return;
+    const correct = selectedId === round.answer;
+    setFeedback(correct ? 'correct' : 'wrong');
+    if (correct) {
+      if (index === rounds.length - 1) {
+        if (!didComplete) {
+          setDidComplete(true);
+          onComplete();
+        }
+      } else {
+        window.setTimeout(() => {
+          setIndex((prev) => prev + 1);
+          setSelectedId(null);
+          setFeedback(null);
+        }, 500);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p>
+        The key distinction is <strong>what the model predicts</strong>. Ignore the model family for a moment and classify the output itself.
+      </p>
+      <Surface>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-2">
+            {rounds.map((item, itemIndex) => (
+              <div
+                key={item.id}
+                className={cn(
+                  'size-2.5 rounded-full',
+                  itemIndex < index || (itemIndex === index && feedback === 'correct')
+                    ? 'bg-primary'
+                    : itemIndex === index
+                      ? 'bg-primary/40'
+                      : 'bg-muted',
+                )}
+              />
+            ))}
+          </div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Output Type Arcade
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_0.95fr]">
+          <div className="rounded-[24px] border bg-background/70 p-5">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Current prediction
+            </div>
+            <h3 className="mt-2 text-xl font-semibold">{round.title}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{round.prompt}</p>
+            <div className="mt-5 rounded-[22px] border bg-card/70 p-5">
+              <OutputPreview taskId={round.id} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setSelectedId(option.id)}
+                className={cn(
+                  'w-full rounded-2xl border p-4 text-left transition-colors',
+                  selectedId === option.id ? 'border-primary bg-primary/5' : 'hover:bg-muted/60',
+                )}
+              >
+                <div className="font-semibold">{option.label}</div>
+              </button>
+            ))}
+
+            <div className="pt-1">
+              {!feedback ? (
+                <Button size="sm" onClick={handleCheck} disabled={!selectedId}>
+                  Check framing
+                </Button>
+              ) : (
+                <div
+                  className={cn(
+                    'rounded-xl px-3 py-2 text-sm',
+                    feedback === 'correct'
+                      ? 'bg-green-500/10 text-green-700 dark:text-green-300'
+                      : 'bg-red-500/10 text-red-700 dark:text-red-300',
+                  )}
+                >
+                  {feedback === 'correct'
+                    ? round.why
+                    : 'Not quite. Focus on the output itself: a number, two classes, many classes, or many outputs.'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Surface>
+    </div>
+  );
+}
+
+function TrainTestSplitExplorer({ onComplete }: { onComplete: () => void }) {
+  const supporting = (
+    <Surface className="p-4">
+      <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] md:items-center">
+        <div className="rounded-2xl border p-4">
+          <div className="text-sm font-semibold">Raw dataset</div>
+          <div className="mt-1 text-sm text-muted-foreground">Paired inputs and known targets</div>
+        </div>
+        <div className="text-center text-muted-foreground">→</div>
+        <div className="rounded-2xl border border-blue-500/40 bg-blue-500/5 p-4">
+          <div className="text-sm font-semibold">Train split</div>
+          <div className="mt-1 text-sm text-muted-foreground">Fit the model parameters</div>
+        </div>
+        <div className="text-center text-muted-foreground">→</div>
+        <div className="rounded-2xl border p-4">
+          <div className="text-sm font-semibold">Model</div>
+          <div className="mt-1 text-sm text-muted-foreground">Learned from the train split</div>
+        </div>
+        <div className="text-center text-muted-foreground">→</div>
+        <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-4">
+          <div className="text-sm font-semibold">Test split</div>
+          <div className="mt-1 text-sm text-muted-foreground">Check unseen performance</div>
+        </div>
+      </div>
+    </Surface>
+  );
+
+  return (
+    <ChoiceExercise
+      prompt="Which split tells you whether the model works on unseen data?"
+      supporting={supporting}
+      options={[
+        {
+          id: 'test',
+          label: 'The test split',
+          detail: 'Use it after training to estimate generalization',
+          correct: true,
+          explanation: 'Correct. Test data is held out so the model cannot fit itself to those exact examples first.',
+        },
+        {
+          id: 'train',
+          label: 'The train split',
+          detail: 'The model has already optimized around these examples',
+          correct: false,
+          explanation: 'Training data can look deceptively good because the model already saw it while learning.',
+        },
+        {
+          id: 'both',
+          label: 'Combine train and test first',
+          detail: 'That leaks the answer into the evaluation',
+          correct: false,
+          explanation: 'Mixing them destroys the whole point of a held-out check.',
+        },
+      ]}
+      onComplete={onComplete}
+    />
+  );
+}
+
+function DeepLearningDomainAtlas({ onComplete }: { onComplete: () => void }) {
   const tasks = [
     {
       id: 'house-price',
@@ -596,7 +1132,9 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
       description: 'Predict the selling price of a home from its features.',
       outputType: 'Regression · continuous value',
       model: 'Fully connected network',
-      note: 'This is the branch Topic 10 expands: one numeric prediction.',
+      note: 'This is the regression branch Topic 10 expands later.',
+      badges: ['Deep Learning', 'Tabular'],
+      tone: 'blue',
     },
     {
       id: 'text',
@@ -604,7 +1142,9 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
       description: 'Predict whether a text belongs to one of two classes.',
       outputType: 'Binary classification',
       model: 'Transformer network',
-      note: 'Two discrete classes instead of a number.',
+      note: 'Same supervised setup, but the output is now a class instead of a number.',
+      badges: ['Deep Learning', 'NLP / Language'],
+      tone: 'violet',
     },
     {
       id: 'music',
@@ -612,7 +1152,9 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
       description: 'Assign a clip to one of several genres.',
       outputType: 'Multiclass classification',
       model: 'Recurrent neural network (RNN)',
-      note: 'More than two discrete labels.',
+      note: 'Audio task, many labels, still supervised learning.',
+      badges: ['Deep Learning', 'Audio'],
+      tone: 'emerald',
     },
     {
       id: 'image',
@@ -620,7 +1162,9 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
       description: 'Assign an image to one of several object classes.',
       outputType: 'Multiclass classification',
       model: 'Convolutional network',
-      note: 'One label for the whole image.',
+      note: 'One label for the whole image. This is classic computer vision.',
+      badges: ['Deep Learning', 'Computer Vision'],
+      tone: 'amber',
     },
     {
       id: 'segmentation',
@@ -628,15 +1172,19 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
       description: 'Predict many pixel-level labels at once.',
       outputType: 'Multivariate binary classification',
       model: 'Convolutional encoder-decoder',
-      note: 'Many outputs at once instead of one class.',
+      note: 'Many outputs at once, so it differs sharply from one-number regression.',
+      badges: ['Deep Learning', 'Computer Vision'],
+      tone: 'amber',
     },
     {
       id: 'translation',
       title: 'Translation',
       description: 'Produce an output sequence in another language.',
       outputType: 'Structured sequence output',
-      model: 'Sequence-to-sequence style model',
-      note: 'Not a single label or number; the output is a whole sequence.',
+      model: 'Sequence-to-sequence language model',
+      note: 'Not one label and not one number. The output is a whole sequence.',
+      badges: ['Deep Learning', 'NLP / Language'],
+      tone: 'violet',
     },
   ] as const;
 
@@ -648,87 +1196,116 @@ function TaskGalleryExplorer({ onComplete }: { onComplete: () => void }) {
   const selectedTask = tasks.find((task) => task.id === selectedId) ?? tasks[0];
 
   useEffect(() => {
-    if (visited.size >= 3 && !didComplete) {
+    if (visited.size >= 4 && !didComplete) {
       setDidComplete(true);
       onComplete();
     }
-  }, [visited, didComplete, onComplete]);
+  }, [didComplete, onComplete, visited]);
 
   const handleSelect = (taskId: (typeof tasks)[number]['id']) => {
     setSelectedId(taskId);
     setVisited((prev) => new Set(prev).add(taskId));
   };
 
+  const toneClass = {
+    blue: 'from-blue-500/10 via-transparent to-transparent',
+    violet: 'from-violet-500/10 via-transparent to-transparent',
+    emerald: 'from-emerald-500/10 via-transparent to-transparent',
+    amber: 'from-amber-500/10 via-transparent to-transparent',
+  } as const;
+
   return (
     <div className="space-y-4">
       <p>
-        The slide deck tours several ML domains before zooming in. Click around between the examples and compare their output types and model families.
+        The lecture then zooms out across modern ML domains. Same broad idea, different data types, different outputs, different model families.
       </p>
-      <div className="text-sm text-muted-foreground">
-        Explore at least <strong>3 examples</strong> to mark this card complete. You can still skim forward at any time.
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="grid gap-3 md:grid-cols-2">
-          {tasks.map((task) => {
-            const active = task.id === selectedId;
-            return (
+      <Surface>
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="space-y-2">
+            {tasks.map((task) => (
               <button
                 key={task.id}
                 type="button"
                 onClick={() => handleSelect(task.id)}
                 className={cn(
-                  'rounded-xl border p-4 text-left transition-colors',
-                  active ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                  'w-full rounded-2xl border p-4 text-left transition-colors',
+                  task.id === selectedId ? 'border-primary bg-primary/5' : 'hover:bg-muted/60',
                 )}
               >
-                <div className="font-semibold">{task.title}</div>
-                <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
-                <div className="mt-3 text-xs text-muted-foreground">{task.outputType}</div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="font-semibold">{task.title}</div>
+                  {task.badges.slice(1).map((badge) => (
+                    <Tag
+                      key={badge}
+                      label={badge}
+                      tone={badge === 'Computer Vision' ? 'amber' : badge === 'Audio' ? 'emerald' : badge === 'Tabular' ? 'blue' : 'violet'}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">{task.description}</div>
               </button>
-            );
-          })}
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={selectedTask.id}
+              initial={{ opacity: 0, x: 18 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -18 }}
+              className={cn(
+                'rounded-[28px] border bg-gradient-to-br p-5',
+                toneClass[selectedTask.tone],
+              )}
+            >
+              <div className="flex flex-wrap gap-2">
+                {selectedTask.badges.map((badge) => (
+                  <Tag
+                    key={badge}
+                    label={badge}
+                    tone={badge === 'Computer Vision' ? 'amber' : badge === 'Audio' ? 'emerald' : badge === 'Tabular' ? 'blue' : 'violet'}
+                  />
+                ))}
+              </div>
+              <h3 className="mt-3 text-2xl font-semibold">{selectedTask.title}</h3>
+              <p className="mt-2 max-w-xl text-sm text-muted-foreground">{selectedTask.description}</p>
+
+              <div className="mt-5 rounded-[24px] border bg-background/70 p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Output snapshot
+                </div>
+                <div className="mt-4">
+                  <OutputPreview taskId={selectedTask.id} />
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Output type
+                  </div>
+                  <div className="mt-2 text-sm">{selectedTask.outputType}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Example model
+                  </div>
+                  <div className="mt-2 text-sm">{selectedTask.model}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    Why it matters
+                  </div>
+                  <div className="mt-2 text-sm">{selectedTask.note}</div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={selectedTask.id}
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -18 }}
-            className="rounded-xl border bg-card p-5"
-          >
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Slide framing
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">{selectedTask.title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{selectedTask.description}</p>
-            <div className="mt-4 rounded-xl border bg-background/70 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Output snapshot
-              </div>
-              <div className="mt-3">
-                <TaskOutputPreview taskId={selectedTask.id} />
-              </div>
-            </div>
-            <div className="mt-4 space-y-3">
-              <div>
-                <div className="text-sm font-semibold">Output type</div>
-                <div className="text-sm text-muted-foreground">{selectedTask.outputType}</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold">Example model</div>
-                <div className="text-sm text-muted-foreground">{selectedTask.model}</div>
-              </div>
-              <div>
-                <div className="text-sm font-semibold">Why it matters here</div>
-                <div className="text-sm text-muted-foreground">{selectedTask.note}</div>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      </Surface>
       <CalloutBox type="info" title="Topic 10 Scope">
         <p>
-          The deck introduces several ML domains first. This topic still uses the rest of the time to go deep on the regression case.
+          This overview is broad on purpose. After seeing how ML stretches across tabular data, language, audio, and vision, the rest of Topic 10 narrows to one supervised case: regression.
         </p>
       </CalloutBox>
     </div>
@@ -805,7 +1382,7 @@ function FitDiagnosisExercise({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="space-y-4">
       <p>
-        The lab notebook’s degree-1, degree-3, and degree-10 examples all tell the same story: too simple misses structure, too flexible memorizes noise.
+        The regression notebook compares degree-1, degree-3, and degree-10 models for one reason: to see when a model is too simple, just right, or far too flexible.
       </p>
       <div className="grid gap-4 lg:grid-cols-3">
         {models.map((model) => {
@@ -870,7 +1447,7 @@ function FitDiagnosisExercise({ onComplete }: { onComplete: () => void }) {
       ) : (
         <CalloutBox type="tip" title="Generalization check">
           <p>
-            Good fit means the model captures the trend and still works on unseen data. That is why the notebook keeps comparing train and test performance.
+            Good fit means the model captures the trend and still works on unseen data. That is why the regression notebook keeps comparing train and test performance.
           </p>
         </CalloutBox>
       )}
@@ -884,6 +1461,13 @@ export default function Topic10RegressionPage() {
     const section = SECTIONS.find((item) => item.id === card.sectionId);
 
     switch (card.component) {
+      case 'MLDefinitionHook':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <MLDefinitionHook onComplete={onComplete} />
+          </LessonCard>
+        );
+
       case 'ParadigmPlayground':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
@@ -891,10 +1475,10 @@ export default function Topic10RegressionPage() {
           </LessonCard>
         );
 
-      case 'PriceGuessHook':
+      case 'ReinforcementLoopGame':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
-            <PriceGuessHookContent onComplete={onComplete} />
+            <ReinforcementLoopGame onComplete={onComplete} />
           </LessonCard>
         );
 
@@ -905,6 +1489,27 @@ export default function Topic10RegressionPage() {
           </LessonCard>
         );
 
+      case 'OutputTypeArcade':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <OutputTypeArcade onComplete={onComplete} />
+          </LessonCard>
+        );
+
+      case 'TrainTestSplit':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <TrainTestSplitExplorer onComplete={onComplete} />
+          </LessonCard>
+        );
+
+      case 'DeepLearningDomainAtlas':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <DeepLearningDomainAtlas onComplete={onComplete} />
+          </LessonCard>
+        );
+
       case 'QuizWhy':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
@@ -912,94 +1517,10 @@ export default function Topic10RegressionPage() {
           </LessonCard>
         );
 
-      case 'TaskGallery':
+      case 'PriceGuessHook':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
-            <TaskGalleryExplorer onComplete={onComplete} />
-          </LessonCard>
-        );
-
-      case 'RegressionTerms':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <p>
-              The regression slice of the slide deck only needs four terms: <strong>continuous output</strong>, <strong>classification as contrast</strong>, <strong>univariate output</strong>, and <strong>multivariate output</strong>.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2 not-prose">
-              <div className="rounded-xl border p-4">
-                <div className="font-semibold text-sm">Univariate output</div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  One predicted number, like a single house price.
-                </div>
-              </div>
-              <div className="rounded-xl border p-4">
-                <div className="font-semibold text-sm">Multivariate output</div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  More than one predicted value at once, like predicting both demand and wait time.
-                </div>
-              </div>
-            </div>
-            <CalloutBox type="info" title="Inputs vs Outputs">
-              <p>
-                Many input features do <em>not</em> automatically mean multivariate output. You can have many inputs and still predict just one number.
-              </p>
-            </CalloutBox>
-          </LessonCard>
-        );
-
-      case 'TrainTestSplit':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <ChoiceExercise
-              prompt="We fit on one split and judge on another. Which split tells us whether the model works on unseen data?"
-              supporting={(
-                <div className="grid gap-3 md:grid-cols-3 not-prose">
-                  <div className="rounded-xl border p-4">
-                    <div className="text-sm font-semibold">Raw data</div>
-                    <div className="mt-1 text-sm text-muted-foreground">Examples with inputs and known targets</div>
-                  </div>
-                  <div className="rounded-xl border p-4">
-                    <div className="text-sm font-semibold">Train split</div>
-                    <div className="mt-1 text-sm text-muted-foreground">Used to fit the line or model parameters</div>
-                  </div>
-                  <div className="rounded-xl border p-4">
-                    <div className="text-sm font-semibold">Test split</div>
-                    <div className="mt-1 text-sm text-muted-foreground">Held back until the final check</div>
-                  </div>
-                </div>
-              )}
-              options={[
-                {
-                  id: 'test',
-                  label: 'Use the test split',
-                  detail: 'It estimates performance on new data',
-                  correct: true,
-                  explanation: 'Correct. Test data is the honest evaluation because the model did not fit on it.',
-                },
-                {
-                  id: 'train',
-                  label: 'Use the training split',
-                  detail: 'It is the data the model already saw while learning',
-                  correct: false,
-                  explanation: 'Training data can look deceptively good because the model already optimized itself around it.',
-                },
-                {
-                  id: 'both',
-                  label: 'Combine train and test first',
-                  detail: 'This leaks the answer into the evaluation',
-                  correct: false,
-                  explanation: 'Mixing them destroys the whole point of a held-out check.',
-                },
-              ]}
-              onComplete={onComplete}
-            />
-          </LessonCard>
-        );
-
-      case 'QuizBasics':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <QuizCard questions={QUIZ_102} onComplete={onComplete} />
+            <PriceGuessHookContent onComplete={onComplete} />
           </LessonCard>
         );
 
@@ -1046,7 +1567,7 @@ export default function Topic10RegressionPage() {
                 </div>
               </div>
             </div>
-            <CalloutBox type="key-idea" title="Residual Thinking">
+            <CalloutBox type="key-idea" title="Residual thinking">
               <p>
                 The model is not trying to hit every point exactly. It is trying to make the overall residual error as small as possible across the training set.
               </p>
@@ -1057,7 +1578,7 @@ export default function Topic10RegressionPage() {
       case 'QuizLine':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
-            <QuizCard questions={QUIZ_103} onComplete={onComplete} />
+            <QuizCard questions={QUIZ_102} onComplete={onComplete} />
           </LessonCard>
         );
 
@@ -1065,7 +1586,7 @@ export default function Topic10RegressionPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              `lab1-regression` uses the California Housing dataset from the 1990 census. Each row is a small geographic area, and the target is median house value.
+              The regression notebook uses the California Housing dataset from the 1990 census. Each row is a small geographic area, and the target is median house value.
             </p>
             <div className="grid gap-4 md:grid-cols-3 not-prose">
               <div className="rounded-xl border p-4">
@@ -1081,7 +1602,7 @@ export default function Topic10RegressionPage() {
                 <div className="mt-1 text-sm text-muted-foreground">The target is capped at $500k, so the dataset is not perfectly clean.</div>
               </div>
             </div>
-            <CalloutBox type="info" title="Why This Dataset Works">
+            <CalloutBox type="info" title="Why this dataset works">
               <p>
                 It is big enough to feel real, visual enough to inspect, and structured enough to show how one feature, many features, and geography all affect predictions.
               </p>
@@ -1097,11 +1618,11 @@ export default function Topic10RegressionPage() {
             </p>
             <BlockMath>{'\\hat{y} = w_1x_1 + w_2x_2 + \\dots + w_dx_d + b'}</BlockMath>
             <p>
-              In the notebook, the one-feature baseline using `MedInc` reaches about <strong>R² ≈ 0.47</strong>. Using all eight features raises that to about <strong>R² ≈ 0.61</strong>.
+              In the notebook, the one-feature baseline using `MedInc` reaches about <strong>R^2 ~= 0.47</strong>. Using all eight features raises that to about <strong>R^2 ~= 0.61</strong>.
             </p>
-            <CalloutBox type="key-idea" title="Coefficient Intuition">
+            <CalloutBox type="key-idea" title="Coefficient intuition">
               <p>
-                Each coefficient answers: “if this feature goes up by one unit, how does the prediction change, assuming the others stay fixed?” The lab highlights `MedInc` as the strongest positive driver.
+                Each coefficient answers: “if this feature goes up by one unit, how does the prediction change, assuming the others stay fixed?” The notebook highlights `MedInc` as the strongest positive driver.
               </p>
             </CalloutBox>
           </LessonCard>
@@ -1110,7 +1631,7 @@ export default function Topic10RegressionPage() {
       case 'QuizMulti':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
-            <QuizCard questions={QUIZ_104} onComplete={onComplete} />
+            <QuizCard questions={QUIZ_103} onComplete={onComplete} />
           </LessonCard>
         );
 
@@ -1125,7 +1646,7 @@ export default function Topic10RegressionPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              The notebook’s polynomial example is here for one reason: to compare <strong>underfit</strong>, <strong>good fit</strong>, and <strong>overfit</strong> using train versus test performance.
+              The polynomial example is here for one reason: compare <strong>underfit</strong>, <strong>good fit</strong>, and <strong>overfit</strong> using train versus test performance.
             </p>
             <div className="grid gap-4 md:grid-cols-3 not-prose">
               <div className="rounded-xl border p-4">
@@ -1141,9 +1662,9 @@ export default function Topic10RegressionPage() {
                 <div className="mt-1 text-sm text-muted-foreground">Looks great on training data but gets worse on unseen data.</div>
               </div>
             </div>
-            <CalloutBox type="warning" title="Notebook-Only Extensions">
+            <CalloutBox type="warning" title="Notebook continuations">
               <p>
-                Regularization and gradient descent still exist in `lab1-regression`, but they are intentionally left as notebook continuations instead of core lesson sections here.
+                Regularization and gradient descent still exist in the regression notebook, but they stay outside the core lesson flow here.
               </p>
             </CalloutBox>
           </LessonCard>
@@ -1152,40 +1673,7 @@ export default function Topic10RegressionPage() {
       case 'QuizFitQuality':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
-            <QuizCard questions={QUIZ_105} onComplete={onComplete} />
-          </LessonCard>
-        );
-
-      case 'Lab10Ex1':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <ExerciseCard exerciseId="lab10-ex1" number={1} title="Explore the Housing Data" totalSteps={3} defaultOpen>
-              <Suspense fallback={<VizLoading />}>
-                <Exercise1HousingExplore onComplete={onComplete} />
-              </Suspense>
-            </ExerciseCard>
-          </LessonCard>
-        );
-
-      case 'Lab10Ex2':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <ExerciseCard exerciseId="lab10-ex2" number={2} title="Simple vs Multiple Regression" totalSteps={3} defaultOpen>
-              <Suspense fallback={<VizLoading />}>
-                <Exercise2SimpleVsMultipleRegression onComplete={onComplete} />
-              </Suspense>
-            </ExerciseCard>
-          </LessonCard>
-        );
-
-      case 'Lab10Ex3':
-        return (
-          <LessonCard title={card.title} sectionLabel={section?.label}>
-            <ExerciseCard exerciseId="lab10-ex3" number={3} title="Diagnose the Fit" totalSteps={3} defaultOpen>
-              <Suspense fallback={<VizLoading />}>
-                <Exercise3FitDiagnosis onComplete={onComplete} />
-              </Suspense>
-            </ExerciseCard>
+            <QuizCard questions={QUIZ_104} onComplete={onComplete} />
           </LessonCard>
         );
 

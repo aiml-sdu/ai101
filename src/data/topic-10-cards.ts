@@ -7,12 +7,8 @@ export interface CardSection {
 }
 
 export const SECTIONS: CardSection[] = [
-  { id: 'why', label: 'Introduction to ML', cardRange: [0, 3] },
-  { id: 'basics', label: 'What Counts as Regression', cardRange: [4, 7] },
-  { id: 'line', label: 'Fit a Line', cardRange: [8, 11] },
-  { id: 'multi', label: 'More Than One Feature', cardRange: [12, 14] },
-  { id: 'fit-quality', label: 'When Fits Go Wrong', cardRange: [15, 17] },
-  { id: 'lab', label: 'Lab 1', cardRange: [18, 20] },
+  { id: 'why', label: '10.1 Introduction to ML', cardRange: [0, 7] },
+  { id: 'regression', label: '10.2 Regression', cardRange: [8, 18] },
 ];
 
 export interface LessonCardDef {
@@ -25,159 +21,138 @@ export interface LessonCardDef {
 }
 
 export const CARDS: LessonCardDef[] = [
+  { id: 'ml-definition-hook', title: 'When Rules Break', sectionId: 'why', component: 'MLDefinitionHook', requiresCompletion: true },
   { id: 'paradigm-playground', title: 'Paradigm Playground', sectionId: 'why', component: 'ParadigmPlayground', requiresCompletion: true },
+  { id: 'reinforcement-loop-game', title: 'Rewards, States, Actions', sectionId: 'why', component: 'ReinforcementLoopGame', requiresCompletion: true },
   { id: 'supervised-model', title: 'What Is a Supervised Model?', sectionId: 'why', component: 'SupervisedModel', requiresCompletion: true },
-  { id: 'task-gallery', title: 'ML Tasks Across Domains', sectionId: 'why', component: 'TaskGallery', requiresCompletion: true },
+  { id: 'output-type-arcade', title: 'Sort the Output Types', sectionId: 'why', component: 'OutputTypeArcade', requiresCompletion: true },
+  { id: 'train-test-split', title: 'Train, Then Test', sectionId: 'why', component: 'TrainTestSplit', requiresCompletion: true },
+  { id: 'deep-learning-domain-atlas', title: 'Deep Learning Across Domains', sectionId: 'why', component: 'DeepLearningDomainAtlas', requiresCompletion: true },
   { id: 'quiz-why', title: 'Quiz: Intro to ML', sectionId: 'why', component: 'QuizWhy', requiresCompletion: true },
 
-  { id: 'price-guess-hook', title: 'Can You Guess the Price?', sectionId: 'basics', component: 'PriceGuessHook', requiresCompletion: true },
-  { id: 'regression-terms', title: 'Continuous, Discrete, Uni, Multi', sectionId: 'basics', component: 'RegressionTerms', autoComplete: true },
-  { id: 'train-test-split', title: 'Train vs Test', sectionId: 'basics', component: 'TrainTestSplit', requiresCompletion: true },
-  { id: 'quiz-basics', title: 'Quiz: Regression Basics', sectionId: 'basics', component: 'QuizBasics', requiresCompletion: true },
-
-  { id: 'fit-the-line', title: 'Fit the Line', sectionId: 'line', component: 'FitTheLine', requiresCompletion: true },
-  { id: 'residual-squares', title: 'Residuals and Error', sectionId: 'line', component: 'ResidualSquares', autoComplete: true },
-  { id: 'regression-equation', title: 'The Regression Equation', sectionId: 'line', component: 'RegressionEquation', autoComplete: true },
-  { id: 'quiz-line', title: 'Quiz: Fitting a Line', sectionId: 'line', component: 'QuizLine', requiresCompletion: true },
-
-  { id: 'housing-dataset', title: 'The California Housing Data', sectionId: 'multi', component: 'HousingDataset', autoComplete: true },
-  { id: 'multiple-regression', title: 'Multiple Regression', sectionId: 'multi', component: 'MultipleRegression', autoComplete: true },
-  { id: 'quiz-multi', title: 'Quiz: Multiple Regression', sectionId: 'multi', component: 'QuizMulti', requiresCompletion: true },
-
-  { id: 'fit-diagnosis', title: 'Underfit, Good Fit, Overfit', sectionId: 'fit-quality', component: 'FitDiagnosis', requiresCompletion: true },
-  { id: 'generalization-gap', title: 'What Generalizes?', sectionId: 'fit-quality', component: 'GeneralizationGap', autoComplete: true },
-  { id: 'quiz-fit-quality', title: 'Quiz: Fit Quality', sectionId: 'fit-quality', component: 'QuizFitQuality', requiresCompletion: true },
-
-  { id: 'lab10-ex1', title: 'Exercise 1: Explore the Housing Data', sectionId: 'lab', component: 'Lab10Ex1', requiresCompletion: true },
-  { id: 'lab10-ex2', title: 'Exercise 2: Simple vs Multiple Regression', sectionId: 'lab', component: 'Lab10Ex2', requiresCompletion: true },
-  { id: 'lab10-ex3', title: 'Exercise 3: Diagnose the Fit', sectionId: 'lab', component: 'Lab10Ex3', requiresCompletion: true },
+  { id: 'price-guess-hook', title: 'Can You Guess the Price?', sectionId: 'regression', component: 'PriceGuessHook', requiresCompletion: true },
+  { id: 'fit-the-line', title: 'Fit the Line', sectionId: 'regression', component: 'FitTheLine', requiresCompletion: true },
+  { id: 'residual-squares', title: 'Residuals and Error', sectionId: 'regression', component: 'ResidualSquares', autoComplete: true },
+  { id: 'regression-equation', title: 'The Regression Equation', sectionId: 'regression', component: 'RegressionEquation', autoComplete: true },
+  { id: 'quiz-line', title: 'Quiz: Fitting a Line', sectionId: 'regression', component: 'QuizLine', requiresCompletion: true },
+  { id: 'housing-dataset', title: 'The California Housing Data', sectionId: 'regression', component: 'HousingDataset', autoComplete: true },
+  { id: 'multiple-regression', title: 'Multiple Regression', sectionId: 'regression', component: 'MultipleRegression', autoComplete: true },
+  { id: 'quiz-multi', title: 'Quiz: Multiple Regression', sectionId: 'regression', component: 'QuizMulti', requiresCompletion: true },
+  { id: 'fit-diagnosis', title: 'Underfit, Good Fit, Overfit', sectionId: 'regression', component: 'FitDiagnosis', requiresCompletion: true },
+  { id: 'generalization-gap', title: 'What Generalizes?', sectionId: 'regression', component: 'GeneralizationGap', autoComplete: true },
+  { id: 'quiz-fit-quality', title: 'Quiz: Fit Quality', sectionId: 'regression', component: 'QuizFitQuality', requiresCompletion: true },
 ];
 
 export const QUIZ_101: QuizQuestion[] = [
   {
     id: 't10r-q01',
-    question: 'Which lecture example is reinforcement learning?',
+    question: 'Which lecture example is unsupervised learning?',
     options: [
-      'Clustering an unlabeled dataset',
-      'Predicting house price from labeled examples',
-      'Learning to play chess from rewards while exploring moves',
-      'Filling in missing values in a dataset',
+      'Predicting house prices from labeled examples',
+      'Grouping unlabeled examples into clusters',
+      'Choosing chess moves from rewards',
+      'Estimating test accuracy on unseen data',
     ],
-    correctIndex: 2,
-    explanation: 'Reinforcement learning uses states, actions, and rewards. The lecture’s chess example fits that setup exactly.',
+    correctIndex: 1,
+    explanation: 'Unsupervised learning works without labels. Clustering, outlier detection, generation, and filling missing data are the slide’s examples.',
   },
   {
     id: 't10r-q02',
     question: 'In supervised learning, each training example contains:',
     options: [
+      'A state and a reward',
       'Only an input',
-      'Only an output',
       'A paired input and target output',
-      'A reward and an action',
+      'Only a class label',
     ],
     correctIndex: 2,
-    explanation: 'Supervised learning uses paired input/output examples. For regression, the output is usually a continuous value such as price, temperature, or demand.',
+    explanation: 'Supervised learning is about learning a mapping from paired input/output examples.',
   },
   {
     id: 't10r-q03',
-    question: 'Predicting both house price and monthly rent from the same feature vector is best described as:',
+    question: 'Which task is the clearest example of multiclass classification from the lecture?',
     options: [
-      'Binary classification',
-      'Multiclass classification',
-      'Univariate regression',
-      'Multivariate regression',
+      'Predicting a single house price',
+      'Predicting sentiment as positive vs negative',
+      'Assigning a music clip to one of several genres',
+      'Predicting both house price and rent together',
     ],
-    correctIndex: 3,
-    explanation: 'Regression predicts continuous numbers. If the model predicts more than one numeric output at once, it becomes multivariate regression.',
+    correctIndex: 2,
+    explanation: 'Music genre classification has more than two discrete labels, so it is multiclass classification.',
+  },
+  {
+    id: 't10r-q04',
+    question: 'Which slide pairing is the best match for NLP / language?',
+    options: [
+      'Image classification with a convolutional network',
+      'Text classification with a transformer network',
+      'House price prediction with a fully connected network',
+      'Image segmentation with a convolutional encoder-decoder',
+    ],
+    correctIndex: 1,
+    explanation: 'The lecture explicitly pairs text classification with a transformer network, which sits under the NLP / language umbrella.',
   },
 ];
 
 export const QUIZ_102: QuizQuestion[] = [
   {
-    id: 't10r-q04',
-    question: 'Which of these is a regression task?',
-    options: [
-      'Predict whether an email is spam',
-      'Predict the selling price of a house',
-      'Label a music clip by genre',
-      'Choose the species of a penguin',
-    ],
-    correctIndex: 1,
-    explanation: 'Regression predicts a continuous number. House price is continuous, while spam labels, music genres, and species are discrete classes.',
-  },
-  {
     id: 't10r-q05',
-    question: 'What does "multivariate output" mean?',
-    options: [
-      'The model uses many input features',
-      'The model predicts more than one output value',
-      'The dataset has many rows',
-      'The model can only predict classes',
-    ],
-    correctIndex: 1,
-    explanation: 'Univariate means one output. Multivariate means the model produces multiple outputs, even if the input also contains many features.',
-  },
-];
-
-export const QUIZ_103: QuizQuestion[] = [
-  {
-    id: 't10r-q06',
     question: 'In the equation ŷ = wx + b, increasing w mainly changes the:',
     options: [
       'Steepness of the line',
       'Number of data points',
       'Meaning of the target variable',
-      'Size of the test set',
+      'Size of the test split',
     ],
     correctIndex: 0,
-    explanation: 'The weight w is the slope. A larger positive slope makes the line steeper, while b shifts the whole line up or down.',
+    explanation: 'The weight w is the slope. Bigger w means the prediction changes more quickly as x changes.',
   },
   {
-    id: 't10r-q07',
-    question: 'Why do we keep a separate test set?',
+    id: 't10r-q06',
+    question: 'Why does MSE punish large mistakes more strongly than MAE?',
     options: [
-      'To make the scatter plot look cleaner',
-      'To estimate how well the model works on unseen data',
-      'To reduce the number of features',
-      'To avoid fitting a line altogether',
+      'It removes the residual sign before averaging',
+      'It squares each residual before averaging',
+      'It only looks at the training set',
+      'It ignores small residuals completely',
     ],
     correctIndex: 1,
-    explanation: 'The test set is held out so we can check generalization. A model that only looks good on training data may have memorized noise instead of learning a useful pattern.',
+    explanation: 'Squaring the residual turns a big miss into a much larger contribution, which is why MSE reacts strongly to outliers.',
+  },
+];
+
+export const QUIZ_103: QuizQuestion[] = [
+  {
+    id: 't10r-q07',
+    question: 'If a multiple regression model uses 8 input features, how many learned parameters does it have including the bias?',
+    options: ['8', '9', '16', '64'],
+    correctIndex: 1,
+    explanation: 'There is one weight per feature plus one bias term, so 8 features means 9 parameters total.',
+  },
+  {
+    id: 't10r-q08',
+    question: 'In the regression notebook, which single feature is the strongest standalone predictor of house value?',
+    options: ['Population', 'AveRooms', 'MedInc', 'HouseAge'],
+    correctIndex: 2,
+    explanation: 'Median income (`MedInc`) is the strongest single-feature baseline in the notebook and has the clearest relationship with house value.',
   },
 ];
 
 export const QUIZ_104: QuizQuestion[] = [
   {
-    id: 't10r-q08',
-    question: 'If a multiple regression model uses 8 input features, how many learned parameters does it have including the bias?',
-    options: ['8', '9', '16', '64'],
-    correctIndex: 1,
-    explanation: 'There is one weight for each input feature plus one bias term. With 8 features that gives 8 weights + 1 bias = 9 parameters.',
-  },
-  {
     id: 't10r-q09',
-    question: 'In the regression notebook, which single feature is the strongest standalone predictor of house value?',
-    options: ['Population', 'AveRooms', 'MedInc', 'HouseAge'],
-    correctIndex: 2,
-    explanation: 'Median income (MedInc) has the strongest visible relationship with house value in the lab and is the first single-feature baseline in the notebook.',
-  },
-];
-
-export const QUIZ_105: QuizQuestion[] = [
-  {
-    id: 't10r-q10',
     question: 'Which pattern is the clearest sign of overfitting?',
     options: [
       'Training and test error are both high',
       'Training error is low but test error is much worse',
       'Training and test error are both low',
-      'The model has only one feature',
+      'The model uses only one feature',
     ],
     correctIndex: 1,
-    explanation: 'Overfitting shows up when a model looks great on training data but fails to generalize to new data. The train/test gap is the warning sign.',
+    explanation: 'Overfitting shows up when the model performs very well on training data but fails to generalize to new examples.',
   },
   {
-    id: 't10r-q11',
+    id: 't10r-q10',
     question: 'If a degree-1 model misses a curved pattern, the most likely problem is:',
     options: [
       'Overfitting',
@@ -186,6 +161,6 @@ export const QUIZ_105: QuizQuestion[] = [
       'Too many parameters',
     ],
     correctIndex: 1,
-    explanation: 'A line can be too simple for a curved pattern. That is underfitting: the model does not have enough flexibility to capture the main relationship in the data.',
+    explanation: 'A straight line can be too simple for a curved relationship. That is underfitting.',
   },
 ];

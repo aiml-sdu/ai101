@@ -124,14 +124,14 @@ export default function WelcomePage() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Before Lab 1
+                Optional Local Setup
               </p>
               <h2 className="mt-1 text-lg font-semibold tracking-tight">
                 Set up Conda and Jupyter for the regression notebook
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                A short setup lesson with the exact commands students need before opening
-                <span className="font-mono"> lab1-regression</span>.
+                A short setup lesson with the exact commands students need if they want to run the
+                regression notebook locally instead of using Google Colab.
               </p>
             </div>
           </div>

@@ -101,8 +101,8 @@ export default function MlSetupPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              This page is only for getting <strong>Lab 1 regression</strong> running cleanly. The goal is simple:
-              create one isolated environment, install the notebook tools once, and open the right kernel.
+              This page is only for getting the <strong>regression notebook</strong> running cleanly on your own machine.
+              The goal is simple: create one isolated environment, install the notebook tools once, and open the right kernel.
             </p>
             <CalloutBox type="info" title="Before You Start">
               <p>
@@ -112,6 +112,11 @@ export default function MlSetupPage() {
             <CalloutBox type="key-idea" title="Why Conda Here?">
               <p>
                 Conda keeps the regression notebook dependencies separated from your base Python setup, so you can experiment without breaking other projects.
+              </p>
+            </CalloutBox>
+            <CalloutBox type="info" title="Colab First">
+              <p>
+                If students are using Google Colab, they can skip this page. This setup is only for running the notebook locally.
               </p>
             </CalloutBox>
             <p>
@@ -134,9 +139,9 @@ export default function MlSetupPage() {
                 {
                   id: 'new-env',
                   label: 'A new conda environment',
-                  detail: 'Keeps Lab 1 isolated from other Python work',
+                  detail: 'Keeps the regression notebook isolated from other Python work',
                   correct: true,
-                  explanation: 'Correct. A dedicated environment is the clean, reversible setup for this lab.',
+                  explanation: 'Correct. A dedicated environment is the clean, reversible setup for this notebook.',
                 },
                 {
                   id: 'base',

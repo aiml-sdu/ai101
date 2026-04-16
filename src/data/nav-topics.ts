@@ -148,11 +148,11 @@ export const NAV_TOPICS: NavTopic[] = [
   {
     id: 'topic-10',
     number: 10,
-    title: 'Regression',
+    title: 'Introduction to ML and Classification',
     locked: false,
     sections: [
       { id: 'why', number: '10.1', title: 'Introduction to ML' },
-      { id: 'regression', number: '10.2', title: 'Regression' },
+      { id: 'classification', number: '10.2', title: 'Classification' },
     ],
   },
   {
@@ -164,15 +164,19 @@ export const NAV_TOPICS: NavTopic[] = [
       { id: 'why', number: '1', title: 'Why Environments Matter' },
       { id: 'env', number: '2', title: 'Create and Activate' },
       { id: 'packages', number: '3', title: 'Install Notebook Tools' },
-      { id: 'notebook', number: '4', title: 'Launch the Regression Notebook' },
+      { id: 'notebook', number: '4', title: 'Launch the Notebook' },
     ],
   },
   {
     id: 'topic-11',
     number: 11,
-    title: 'Classification',
+    title: 'Regression',
     locked: true,
-    sections: [],
+    sections: [
+      { id: 'basics', number: '11.1', title: 'Regression Basics' },
+      { id: 'multi', number: '11.2', title: 'Multiple Regression' },
+      { id: 'fit', number: '11.3', title: 'Fit Quality' },
+    ],
   },
   {
     id: 'topic-12',

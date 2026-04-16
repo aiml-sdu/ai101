@@ -7,8 +7,8 @@ export interface CardSection {
 }
 
 export const SECTIONS: CardSection[] = [
-  { id: 'why', label: '10.1 Introduction to ML', cardRange: [0, 7] },
-  { id: 'regression', label: '10.2 Regression', cardRange: [8, 18] },
+  { id: 'why', label: '10.1 Introduction to ML', cardRange: [0, 6] },
+  { id: 'classification', label: '10.2 Classification', cardRange: [7, 17] },
 ];
 
 export interface LessonCardDef {
@@ -24,64 +24,63 @@ export const CARDS: LessonCardDef[] = [
   { id: 'ml-definition-hook', title: 'When Rules Break', sectionId: 'why', component: 'MLDefinitionHook', requiresCompletion: true },
   { id: 'paradigm-playground', title: 'Paradigm Playground', sectionId: 'why', component: 'ParadigmPlayground', requiresCompletion: true },
   { id: 'reinforcement-loop-game', title: 'Rewards, States, Actions', sectionId: 'why', component: 'ReinforcementLoopGame', requiresCompletion: true },
-  { id: 'supervised-model', title: 'What Is a Supervised Model?', sectionId: 'why', component: 'SupervisedModel', requiresCompletion: true },
+  { id: 'supervised-model-explorer', title: 'What Is a Supervised Model?', sectionId: 'why', component: 'SupervisedModelExplorer', requiresCompletion: true },
   { id: 'output-type-arcade', title: 'Sort the Output Types', sectionId: 'why', component: 'OutputTypeArcade', requiresCompletion: true },
-  { id: 'train-test-split', title: 'Train, Then Test', sectionId: 'why', component: 'TrainTestSplit', requiresCompletion: true },
   { id: 'deep-learning-domain-atlas', title: 'Deep Learning Across Domains', sectionId: 'why', component: 'DeepLearningDomainAtlas', requiresCompletion: true },
-  { id: 'quiz-why', title: 'Quiz: Intro to ML', sectionId: 'why', component: 'QuizWhy', requiresCompletion: true },
+  { id: 'quiz-intro-ml', title: 'Quiz: Intro to ML', sectionId: 'why', component: 'QuizIntroML', requiresCompletion: true },
 
-  { id: 'price-guess-hook', title: 'Can You Guess the Price?', sectionId: 'regression', component: 'PriceGuessHook', requiresCompletion: true },
-  { id: 'fit-the-line', title: 'Fit the Line', sectionId: 'regression', component: 'FitTheLine', requiresCompletion: true },
-  { id: 'residual-squares', title: 'Residuals and Error', sectionId: 'regression', component: 'ResidualSquares', autoComplete: true },
-  { id: 'regression-equation', title: 'The Regression Equation', sectionId: 'regression', component: 'RegressionEquation', autoComplete: true },
-  { id: 'quiz-line', title: 'Quiz: Fitting a Line', sectionId: 'regression', component: 'QuizLine', requiresCompletion: true },
-  { id: 'housing-dataset', title: 'The California Housing Data', sectionId: 'regression', component: 'HousingDataset', autoComplete: true },
-  { id: 'multiple-regression', title: 'Multiple Regression', sectionId: 'regression', component: 'MultipleRegression', autoComplete: true },
-  { id: 'quiz-multi', title: 'Quiz: Multiple Regression', sectionId: 'regression', component: 'QuizMulti', requiresCompletion: true },
-  { id: 'fit-diagnosis', title: 'Underfit, Good Fit, Overfit', sectionId: 'regression', component: 'FitDiagnosis', requiresCompletion: true },
-  { id: 'generalization-gap', title: 'What Generalizes?', sectionId: 'regression', component: 'GeneralizationGap', autoComplete: true },
-  { id: 'quiz-fit-quality', title: 'Quiz: Fit Quality', sectionId: 'regression', component: 'QuizFitQuality', requiresCompletion: true },
+  { id: 'classification-task-hook', title: 'Will This Student Pass?', sectionId: 'classification', component: 'ClassificationTaskHook', requiresCompletion: true },
+  { id: 'train-test-split', title: 'Train, Then Test', sectionId: 'classification', component: 'TrainTestSplit', requiresCompletion: true },
+  { id: 'classification-methods-survey', title: 'Classification Methods at a Glance', sectionId: 'classification', component: 'ClassificationMethodsSurvey', requiresCompletion: true },
+  { id: 'decision-tree-path-tracer', title: 'Trace a Student Through the Tree', sectionId: 'classification', component: 'DecisionTreePathTracer', requiresCompletion: true },
+  { id: 'tree-depth-playground', title: 'How Deep Should the Tree Grow?', sectionId: 'classification', component: 'TreeDepthPlayground', requiresCompletion: true },
+  { id: 'random-forest-ensemble', title: 'Why Random Forests Help', sectionId: 'classification', component: 'RandomForestEnsemble', requiresCompletion: true },
+  { id: 'confusion-matrix-explorer', title: 'Read the Confusion Matrix', sectionId: 'classification', component: 'ConfusionMatrixExplorer', requiresCompletion: true },
+  { id: 'feature-importance-error-analysis', title: 'Which Features Matter?', sectionId: 'classification', component: 'FeatureImportanceAndErrorAnalysis', requiresCompletion: true },
+  { id: 'predict-your-own-success', title: 'Predict Your Own Success', sectionId: 'classification', component: 'PredictYourOwnSuccess', requiresCompletion: true },
+  { id: 'quiz-classification', title: 'Quiz: Classification', sectionId: 'classification', component: 'QuizClassification', requiresCompletion: true },
+  { id: 'colab-bridge', title: 'Continue in Colab', sectionId: 'classification', component: 'ColabBridge', autoComplete: true },
 ];
 
 export const QUIZ_101: QuizQuestion[] = [
   {
-    id: 't10r-q01',
+    id: 't10c-q01',
     question: 'Which lecture example is unsupervised learning?',
     options: [
       'Predicting house prices from labeled examples',
       'Grouping unlabeled examples into clusters',
       'Choosing chess moves from rewards',
-      'Estimating test accuracy on unseen data',
+      'Evaluating a model on a held-out test split',
     ],
     correctIndex: 1,
     explanation: 'Unsupervised learning works without labels. Clustering, outlier detection, generation, and filling missing data are the slide’s examples.',
   },
   {
-    id: 't10r-q02',
+    id: 't10c-q02',
     question: 'In supervised learning, each training example contains:',
     options: [
       'A state and a reward',
-      'Only an input',
+      'Only raw inputs with no target',
       'A paired input and target output',
-      'Only a class label',
+      'Only a predicted class label',
     ],
     correctIndex: 2,
     explanation: 'Supervised learning is about learning a mapping from paired input/output examples.',
   },
   {
-    id: 't10r-q03',
+    id: 't10c-q03',
     question: 'Which task is the clearest example of multiclass classification from the lecture?',
     options: [
       'Predicting a single house price',
-      'Predicting sentiment as positive vs negative',
+      'Predicting sentiment as positive or negative',
       'Assigning a music clip to one of several genres',
-      'Predicting both house price and rent together',
+      'Predicting house price and rent together',
     ],
     correctIndex: 2,
     explanation: 'Music genre classification has more than two discrete labels, so it is multiclass classification.',
   },
   {
-    id: 't10r-q04',
+    id: 't10c-q04',
     question: 'Which slide pairing is the best match for NLP / language?',
     options: [
       'Image classification with a convolutional network',
@@ -96,71 +95,51 @@ export const QUIZ_101: QuizQuestion[] = [
 
 export const QUIZ_102: QuizQuestion[] = [
   {
-    id: 't10r-q05',
-    question: 'In the equation ŷ = wx + b, increasing w mainly changes the:',
+    id: 't10c-q05',
+    question: 'What makes the student-success task a classification problem?',
     options: [
-      'Steepness of the line',
-      'Number of data points',
-      'Meaning of the target variable',
-      'Size of the test split',
+      'The output is a continuous number',
+      'The output is one label chosen from known classes',
+      'The model has to explore actions over time',
+      'There are no targets during training',
+    ],
+    correctIndex: 1,
+    explanation: 'Classification predicts a discrete label. Here the model chooses between class labels such as `Pass` and `Needs more support`.',
+  },
+  {
+    id: 't10c-q06',
+    question: 'Why does the notebook use `stratify=y` when creating the train/test split?',
+    options: [
+      'To keep the pass/support balance similar in both splits',
+      'To make the tree grow deeper automatically',
+      'To remove the need for a test set',
+      'To force every feature to have the same scale',
     ],
     correctIndex: 0,
-    explanation: 'The weight w is the slope. Bigger w means the prediction changes more quickly as x changes.',
+    explanation: 'Because this is a class-label problem, the held-out split should keep a similar pass/support balance. Stratification helps preserve that fairness.',
   },
   {
-    id: 't10r-q06',
-    question: 'Why does MSE punish large mistakes more strongly than MAE?',
+    id: 't10c-q07',
+    question: 'What is the main risk of making a decision tree too deep?',
     options: [
-      'It removes the residual sign before averaging',
-      'It squares each residual before averaging',
-      'It only looks at the training set',
-      'It ignores small residuals completely',
+      'It becomes unsupervised',
+      'It ignores all but one feature',
+      'It can memorize training quirks and overfit',
+      'It stops producing class labels',
     ],
-    correctIndex: 1,
-    explanation: 'Squaring the residual turns a big miss into a much larger contribution, which is why MSE reacts strongly to outliers.',
-  },
-];
-
-export const QUIZ_103: QuizQuestion[] = [
-  {
-    id: 't10r-q07',
-    question: 'If a multiple regression model uses 8 input features, how many learned parameters does it have including the bias?',
-    options: ['8', '9', '16', '64'],
-    correctIndex: 1,
-    explanation: 'There is one weight per feature plus one bias term, so 8 features means 9 parameters total.',
-  },
-  {
-    id: 't10r-q08',
-    question: 'In the regression notebook, which single feature is the strongest standalone predictor of house value?',
-    options: ['Population', 'AveRooms', 'MedInc', 'HouseAge'],
     correctIndex: 2,
-    explanation: 'Median income (`MedInc`) is the strongest single-feature baseline in the notebook and has the clearest relationship with house value.',
-  },
-];
-
-export const QUIZ_104: QuizQuestion[] = [
-  {
-    id: 't10r-q09',
-    question: 'Which pattern is the clearest sign of overfitting?',
-    options: [
-      'Training and test error are both high',
-      'Training error is low but test error is much worse',
-      'Training and test error are both low',
-      'The model uses only one feature',
-    ],
-    correctIndex: 1,
-    explanation: 'Overfitting shows up when the model performs very well on training data but fails to generalize to new examples.',
+    explanation: 'A very deep tree can chase tiny details in the training set, which often hurts performance on unseen data.',
   },
   {
-    id: 't10r-q10',
-    question: 'If a degree-1 model misses a curved pattern, the most likely problem is:',
+    id: 't10c-q08',
+    question: 'In the student-success confusion matrix, what does an off-diagonal cell represent?',
     options: [
-      'Overfitting',
-      'Underfitting',
-      'Data leakage',
-      'Too many parameters',
+      'A correct prediction',
+      'A feature-importance score',
+      'A misclassification between actual and predicted labels',
+      'The average confidence of the model',
     ],
-    correctIndex: 1,
-    explanation: 'A straight line can be too simple for a curved relationship. That is underfitting.',
+    correctIndex: 2,
+    explanation: 'The diagonal contains correct predictions. Off-diagonal cells show the mistakes, which is why they are useful for error analysis.',
   },
 ];

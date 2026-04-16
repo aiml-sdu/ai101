@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createHashRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import AppShell from './layouts/AppShell.tsx';
 
 const WelcomePage = lazy(() => import('./pages/WelcomePage.tsx'));
@@ -13,7 +14,8 @@ const Topic06AdversarialPage = lazy(() => import('./pages/Topic06AdversarialPage
 const Topic07ConstraintPage = lazy(() => import('./pages/Topic07ConstraintPage.tsx'));
 const Topic08ProbabilityPage = lazy(() => import('./pages/Topic08ProbabilityPage.tsx'));
 const Topic09HMMPage = lazy(() => import('./pages/Topic09HMMPage.tsx'));
-const Topic10RegressionPage = lazy(() => import('./pages/Topic10RegressionPage.tsx'));
+const Topic10ClassificationPage = lazy(() => import('./pages/Topic10ClassificationPage.tsx'));
+const Topic11RegressionPage = lazy(() => import('./pages/Topic11RegressionPage.tsx'));
 const MlSetupPage = lazy(() => import('./pages/MlSetupPage.tsx'));
 
 function normalizeLegacyHashUrl() {
@@ -49,6 +51,12 @@ function NotReleasedPage() {
       </button>
     </div>
   );
+}
+
+function LockedTopicRoute({ children }: { children: ReactNode }) {
+  const { isSignedIn } = useAuth();
+  const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
+  return reviewMode ? <>{children}</> : <NotReleasedPage />;
 }
 
 const router = createHashRouter([
@@ -140,7 +148,17 @@ const router = createHashRouter([
         path: 'topic-10',
         element: (
           <Suspense fallback={null}>
-            <Topic10RegressionPage />
+            <Topic10ClassificationPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'topic-11',
+        element: (
+          <Suspense fallback={null}>
+            <LockedTopicRoute>
+              <Topic11RegressionPage />
+            </LockedTopicRoute>
           </Suspense>
         ),
       },

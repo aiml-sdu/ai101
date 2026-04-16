@@ -101,7 +101,7 @@ export default function MlSetupPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              This page is only for getting the <strong>regression notebook</strong> running cleanly on your own machine.
+              This page is only for getting an <strong>ML notebook</strong> running cleanly on your own machine.
               The goal is simple: create one isolated environment, install the notebook tools once, and open the right kernel.
             </p>
             <CalloutBox type="info" title="Before You Start">
@@ -111,7 +111,7 @@ export default function MlSetupPage() {
             </CalloutBox>
             <CalloutBox type="key-idea" title="Why Conda Here?">
               <p>
-                Conda keeps the regression notebook dependencies separated from your base Python setup, so you can experiment without breaking other projects.
+                Conda keeps the notebook dependencies separated from your base Python setup, so you can experiment without breaking other projects.
               </p>
             </CalloutBox>
             <CalloutBox type="info" title="Colab First">
@@ -134,12 +134,12 @@ export default function MlSetupPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <SetupChoiceExercise
-              prompt="Where should you install the regression notebook dependencies?"
+              prompt="Where should you install the notebook dependencies?"
               options={[
                 {
                   id: 'new-env',
                   label: 'A new conda environment',
-                  detail: 'Keeps the regression notebook isolated from other Python work',
+                  detail: 'Keeps the notebook isolated from other Python work',
                   correct: true,
                   explanation: 'Correct. A dedicated environment is the clean, reversible setup for this notebook.',
                 },
@@ -171,9 +171,9 @@ export default function MlSetupPage() {
               options={[
                 {
                   id: 'create',
-                  label: 'conda create -n ai101-ml python=3.11',
+                  label: 'conda create -n ai101-ml python=3.12 -y',
                   correct: true,
-                  explanation: 'Correct. This creates a fresh environment named `ai101-ml` with Python 3.11.',
+                  explanation: 'Correct. This creates a fresh environment named `ai101-ml` with Python 3.12, which matches the notebook setup cell.',
                 },
                 {
                   id: 'activate',
@@ -183,13 +183,13 @@ export default function MlSetupPage() {
                 },
                 {
                   id: 'install',
-                  label: 'conda install ai101-ml python=3.11',
+                  label: 'conda install ai101-ml python=3.12',
                   correct: false,
                   explanation: 'That is not the conda command for creating a named environment.',
                 },
               ]}
               onComplete={onComplete}
-              reveal={<CodeBlock language="bash" code="conda create -n ai101-ml python=3.11" />}
+              reveal={<CodeBlock language="bash" code="conda create -n ai101-ml python=3.12 -y" />}
             />
           </LessonCard>
         );
@@ -235,11 +235,11 @@ export default function MlSetupPage() {
                   id: 'install-tools',
                   label: 'conda install jupyterlab ipykernel numpy pandas matplotlib seaborn scikit-learn',
                   correct: true,
-                  explanation: 'Correct. That covers the core packages used in the regression lab.',
+                  explanation: 'Correct. That covers the core packages used in the course ML notebooks.',
                 },
                 {
                   id: 'python-run',
-                  label: 'python lab1_regression_handout.ipynb',
+                  label: 'python lab1_classification_handout.ipynb',
                   correct: false,
                   explanation: 'That tries to execute the notebook file directly, which is not how Jupyter notebooks are launched.',
                 },
@@ -287,7 +287,7 @@ export default function MlSetupPage() {
               options={[
                 {
                   id: 'launch',
-                  label: 'cd ai101-ml/lab1-regression && jupyter lab',
+                  label: 'cd ai101-ml/lab1-classification && jupyter lab',
                   correct: true,
                   explanation: 'Correct. Open JupyterLab from the lab folder, then choose the `Python (ai101-ml)` kernel for the notebook.',
                 },
@@ -299,13 +299,13 @@ export default function MlSetupPage() {
                 },
                 {
                   id: 'direct-python',
-                  label: 'python lab1_regression_handout.ipynb',
+                  label: 'python lab1_classification_handout.ipynb',
                   correct: false,
                   explanation: 'Notebooks should be opened through Jupyter, not run as plain Python scripts.',
                 },
               ]}
               onComplete={onComplete}
-              reveal={<CodeBlock language="bash" code={'cd ai101-ml/lab1-regression\njupyter lab'} />}
+              reveal={<CodeBlock language="bash" code={'cd ai101-ml/lab1-classification\njupyter lab'} />}
             />
           </LessonCard>
         );

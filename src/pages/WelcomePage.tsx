@@ -19,8 +19,8 @@ const DESCRIPTIONS: Record<string, string> = {
   'topic-07': 'CSPs, backtracking, and constraint propagation',
   'topic-08': 'Probability, Bayes\' rule, and Bayesian Networks',
   'topic-09': 'Temporal models and sequence prediction',
-  'topic-10': 'Supervised prediction, line fitting, and diagnosing good vs bad fits',
-  'topic-11': 'Decision trees, random forests, and classification boundaries',
+  'topic-10': 'Introduction to machine learning plus student-success classification with trees, forests, and confusion matrices',
+  'topic-11': 'Continuous prediction with regression models',
   'topic-12': 'Distance-based classification with K-nearest neighbors',
 };
 
@@ -127,11 +127,11 @@ export default function WelcomePage() {
                 Optional Local Setup
               </p>
               <h2 className="mt-1 text-lg font-semibold tracking-tight">
-                Set up Conda and Jupyter for the regression notebook
+                Set up Conda and Jupyter for ML notebooks
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 A short setup lesson with the exact commands students need if they want to run the
-                regression notebook locally instead of using Google Colab.
+                student-success classification notebook locally instead of using Google Colab.
               </p>
             </div>
           </div>

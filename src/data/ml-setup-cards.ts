@@ -10,7 +10,7 @@ export const SECTIONS: CardSection[] = [
   { id: 'why', label: 'Why Environments Matter', cardRange: [0, 1] },
   { id: 'env', label: 'Create and Activate', cardRange: [2, 3] },
   { id: 'packages', label: 'Install Notebook Tools', cardRange: [4, 5] },
-  { id: 'notebook', label: 'Launch the Regression Notebook', cardRange: [6, 7] },
+  { id: 'notebook', label: 'Launch the Notebook', cardRange: [6, 7] },
 ];
 
 export interface LessonCardDef {
@@ -32,26 +32,26 @@ export const CARDS: LessonCardDef[] = [
   { id: 'install-tools-command', title: 'Install the Notebook Tools', sectionId: 'packages', component: 'InstallToolsCommand', requiresCompletion: true },
   { id: 'kernel-registration', title: 'Register the Notebook Kernel', sectionId: 'packages', component: 'KernelRegistration', autoComplete: true },
 
-  { id: 'launch-notebook', title: 'Open the Regression Notebook', sectionId: 'notebook', component: 'LaunchNotebook', requiresCompletion: true },
+  { id: 'launch-notebook', title: 'Open the Notebook', sectionId: 'notebook', component: 'LaunchNotebook', requiresCompletion: true },
   { id: 'setup-quiz', title: 'Quiz: Ready for the Notebook', sectionId: 'notebook', component: 'SetupQuiz', requiresCompletion: true },
 ];
 
 export const QUIZ_SETUP: QuizQuestion[] = [
   {
     id: 'mlsetup-q01',
-    question: 'Why is a dedicated conda environment better than installing everything into base for this lab?',
+    question: 'Why is a dedicated conda environment better than installing everything into base for these notebooks?',
     options: [
       'It isolates the notebook dependencies so they do not collide with other projects',
-      'It makes regression mathematically simpler',
+      'It makes classification mathematically simpler',
       'It removes the need to activate anything',
       'It guarantees every model will generalize well',
     ],
     correctIndex: 0,
-    explanation: 'A separate environment is about isolation and reproducibility. It keeps the regression notebook packages from interfering with other Python work.',
+    explanation: 'A separate environment is about isolation and reproducibility. It keeps the notebook packages from interfering with other Python work.',
   },
   {
     id: 'mlsetup-q02',
-    question: 'After launching Jupyter, which kernel should students select for the regression notebook?',
+    question: 'After launching Jupyter, which kernel should students select for the ML notebook?',
     options: [
       'Python (base)',
       'Python (ai101-ml)',

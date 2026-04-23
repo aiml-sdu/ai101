@@ -156,6 +156,23 @@ export const NAV_TOPICS: NavTopic[] = [
     ],
   },
   {
+    id: 'topic-11',
+    number: 11,
+    title: 'Regression',
+    sections: [
+      { id: 'basics', number: '11.1', title: 'Regression Basics' },
+      { id: 'multi', number: '11.2', title: 'Multiple Regression' },
+      { id: 'fit', number: '11.3', title: 'Fit Quality' },
+    ],
+  },
+  {
+    id: 'topic-12',
+    number: 12,
+    title: 'Clustering (K-Means)',
+    locked: true,
+    sections: [],
+  },
+  {
     id: 'ml-setup',
     number: 0,
     title: 'ML Setup (Conda)',
@@ -166,23 +183,5 @@ export const NAV_TOPICS: NavTopic[] = [
       { id: 'packages', number: '3', title: 'Install Notebook Tools' },
       { id: 'notebook', number: '4', title: 'Launch the Notebook' },
     ],
-  },
-  {
-    id: 'topic-11',
-    number: 11,
-    title: 'Regression',
-    locked: true,
-    sections: [
-      { id: 'basics', number: '11.1', title: 'Regression Basics' },
-      { id: 'multi', number: '11.2', title: 'Multiple Regression' },
-      { id: 'fit', number: '11.3', title: 'Fit Quality' },
-    ],
-  },
-  {
-    id: 'topic-12',
-    number: 12,
-    title: 'K-Nearest Neighbors',
-    locked: true,
-    sections: [],
   },
 ];

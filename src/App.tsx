@@ -1,7 +1,6 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense } from 'react';
 import { createHashRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
-import { useAuth } from '@clerk/clerk-react';
 import AppShell from './layouts/AppShell.tsx';
 
 const WelcomePage = lazy(() => import('./pages/WelcomePage.tsx'));
@@ -51,12 +50,6 @@ function NotReleasedPage() {
       </button>
     </div>
   );
-}
-
-function LockedTopicRoute({ children }: { children: ReactNode }) {
-  const { isSignedIn } = useAuth();
-  const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
-  return reviewMode ? <>{children}</> : <NotReleasedPage />;
 }
 
 const router = createHashRouter([
@@ -156,9 +149,7 @@ const router = createHashRouter([
         path: 'topic-11',
         element: (
           <Suspense fallback={null}>
-            <LockedTopicRoute>
-              <Topic11RegressionPage />
-            </LockedTopicRoute>
+            <Topic11RegressionPage />
           </Suspense>
         ),
       },

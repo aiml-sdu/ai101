@@ -8,8 +8,8 @@ export interface CardSection {
 
 export const SECTIONS: CardSection[] = [
   { id: 'basics', label: '11.1 Regression Basics', cardRange: [0, 4] },
-  { id: 'multi', label: '11.2 Multiple Regression', cardRange: [5, 7] },
-  { id: 'fit', label: '11.3 Fit Quality', cardRange: [8, 10] },
+  { id: 'multi', label: '11.2 Multiple Regression', cardRange: [5, 8] },
+  { id: 'fit', label: '11.3 Fit Quality', cardRange: [9, 11] },
 ];
 
 export interface LessonCardDef {
@@ -29,6 +29,7 @@ export const CARDS: LessonCardDef[] = [
   { id: 'quiz-line', title: 'Quiz: Fitting a Line', sectionId: 'basics', component: 'QuizLine', requiresCompletion: true },
 
   { id: 'housing-dataset', title: 'The California Housing Data', sectionId: 'multi', component: 'HousingDataset', autoComplete: true },
+  { id: 'housing-explorer', title: 'Explore the Dataset', sectionId: 'multi', component: 'HousingExplorer', autoComplete: true },
   { id: 'multiple-regression', title: 'Multiple Regression', sectionId: 'multi', component: 'MultipleRegression', autoComplete: true },
   { id: 'quiz-multi', title: 'Quiz: Multiple Regression', sectionId: 'multi', component: 'QuizMulti', requiresCompletion: true },
 

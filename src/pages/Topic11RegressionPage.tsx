@@ -16,10 +16,22 @@ import { M, BlockMath } from '@/components/Math';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CARDS, QUIZ_111, QUIZ_112, QUIZ_113, SECTIONS } from '@/data/topic-11-cards';
-import { generateLinearData, olsFit } from '@/lib/regression-math';
+import {
+  evaluatePolynomial,
+  fitPolynomial,
+  generateLinearData,
+  olsFit,
+} from '@/lib/regression-math';
+import {
+  FIT_QUALITY_N,
+  FIT_QUALITY_TRAIN_SEED,
+  makeFitQualityData,
+} from '@/lib/fit-quality-data';
 
 const FitTheLineGame = lazy(() => import('./visualizations/FitTheLineGame'));
 const ResidualSquaresViz = lazy(() => import('./visualizations/ResidualSquaresViz'));
+const HousingExplorer = lazy(() => import('./visualizations/HousingExplorer'));
+const FitQualityExplorer = lazy(() => import('./visualizations/FitQualityExplorer'));
 
 function VizLoading() {
   return (
@@ -144,32 +156,76 @@ function PriceGuessHookContent({ onComplete }: { onComplete: () => void }) {
   );
 }
 
-const FIT_POINTS = [
-  [45, 178],
-  [75, 166],
-  [105, 146],
-  [135, 120],
-  [165, 102],
-  [195, 94],
-  [225, 96],
-  [255, 105],
-  [285, 126],
-  [315, 152],
-] as const;
+const PREVIEW_W = 360;
+const PREVIEW_H = 220;
+const PREVIEW_PAD = { top: 14, right: 14, bottom: 14, left: 20 };
+const PREVIEW_PLOT_W = PREVIEW_W - PREVIEW_PAD.left - PREVIEW_PAD.right;
+const PREVIEW_PLOT_H = PREVIEW_H - PREVIEW_PAD.top - PREVIEW_PAD.bottom;
+const PREVIEW_Y_MIN = -2.2;
+const PREVIEW_Y_MAX = 2.2;
 
-const FIT_PATHS = {
-  underfit: 'M 28 184 L 330 118',
-  good: 'M 24 186 C 78 168 112 130 150 108 C 192 88 228 90 266 106 C 296 120 318 136 336 154',
-  overfit: 'M 24 198 C 44 80 72 210 98 100 C 120 44 150 176 178 80 C 206 40 236 190 264 92 C 292 56 318 166 338 130',
-} as const;
+const PREVIEW_DEGREES: Record<'underfit' | 'good' | 'overfit', number> = {
+  underfit: 1,
+  good: 3,
+  overfit: 13,
+};
 
-function FitPreview({ kind }: { kind: keyof typeof FIT_PATHS }) {
+function FitPreview({ kind }: { kind: 'underfit' | 'good' | 'overfit' }) {
+  const points = useMemo(
+    () => makeFitQualityData(FIT_QUALITY_N, FIT_QUALITY_TRAIN_SEED),
+    [],
+  );
+  const coeffs = useMemo(
+    () => fitPolynomial(points, PREVIEW_DEGREES[kind]),
+    [points, kind],
+  );
+
+  const sx = (x: number) => PREVIEW_PAD.left + x * PREVIEW_PLOT_W;
+  const sy = (y: number) =>
+    PREVIEW_PAD.top + PREVIEW_PLOT_H - ((y - PREVIEW_Y_MIN) / (PREVIEW_Y_MAX - PREVIEW_Y_MIN)) * PREVIEW_PLOT_H;
+  const clampY = (y: number) => Math.max(PREVIEW_Y_MIN - 0.5, Math.min(PREVIEW_Y_MAX + 0.5, y));
+
+  const path = useMemo(() => {
+    const steps = 160;
+    let d = '';
+    for (let i = 0; i <= steps; i += 1) {
+      const x = i / steps;
+      const y = clampY(evaluatePolynomial(x, coeffs));
+      d += `${i === 0 ? 'M' : 'L'} ${sx(x).toFixed(1)} ${sy(y).toFixed(1)} `;
+    }
+    return d.trim();
+  }, [coeffs]);
+
   return (
-    <svg viewBox="0 0 360 220" className="h-36 w-full rounded-lg border bg-muted/20">
-      {FIT_POINTS.map(([x, y], index) => (
-        <circle key={`${kind}-${index}`} cx={x} cy={y} r={4} fill="var(--primary)" opacity={0.8} />
+    <svg viewBox={`0 0 ${PREVIEW_W} ${PREVIEW_H}`} className="h-36 w-full rounded-lg border bg-muted/20">
+      <line
+        x1={PREVIEW_PAD.left}
+        y1={sy(0)}
+        x2={PREVIEW_W - PREVIEW_PAD.right}
+        y2={sy(0)}
+        stroke="var(--border)"
+        strokeWidth={0.5}
+        strokeDasharray="3 4"
+        opacity={0.6}
+      />
+      {points.map((p, i) => (
+        <circle
+          key={`${kind}-${i}`}
+          cx={sx(p.x)}
+          cy={sy(clampY(p.y))}
+          r={2.8}
+          fill="var(--primary)"
+          opacity={0.85}
+        />
       ))}
-      <path d={FIT_PATHS[kind]} fill="none" stroke="var(--color-error)" strokeWidth={4} strokeLinecap="round" />
+      <path
+        d={path}
+        fill="none"
+        stroke="var(--color-key-idea)"
+        strokeWidth={2.25}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -211,7 +267,7 @@ function FitDiagnosisExercise({ onComplete }: { onComplete: () => void }) {
   return (
     <div className="space-y-4">
       <p>
-        The regression notebook compares degree-1, degree-3, and degree-10 models for one reason: to see when a model is too simple, just right, or far too flexible.
+        Three polynomial fits on the same noisy data — one too simple, one about right, one too flexible. Label each model from the shape of the curve alone.
       </p>
       <div className="grid gap-4 lg:grid-cols-3">
         {models.map((model) => {
@@ -383,6 +439,23 @@ export default function Topic11RegressionPage() {
           </LessonCard>
         );
 
+      case 'HousingExplorer':
+        return (
+          <LessonCard title={card.title} sectionLabel={section?.label}>
+            <p>
+              Instead of trusting the summary, poke at the actual data. Shuffle the sample to see new rows, and switch the feature to watch which ones track price and which ones are just noise.
+            </p>
+            <Suspense fallback={<VizLoading />}>
+              <HousingExplorer />
+            </Suspense>
+            <CalloutBox type="tip" title="What to look for">
+              <p>
+                The correlation <M>{'r'}</M> ranges from <M>{'-1'}</M> to <M>{'+1'}</M>. Values near zero mean the scatter is a blob; values near <M>{'\\pm 1'}</M> mean the feature almost determines the target on its own. Check which feature wins.
+              </p>
+            </CalloutBox>
+          </LessonCard>
+        );
+
       case 'MultipleRegression':
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
@@ -419,25 +492,14 @@ export default function Topic11RegressionPage() {
         return (
           <LessonCard title={card.title} sectionLabel={section?.label}>
             <p>
-              The polynomial example is here for one reason: compare <strong>underfit</strong>, <strong>good fit</strong>, and <strong>overfit</strong> using train versus test performance.
+              Drag the degree slider and watch two things at once: the fitted curve on the left, and how train versus test error move on the right. The U-shape on the right is the overfitting story.
             </p>
-            <div className="grid gap-4 md:grid-cols-3 not-prose">
-              <div className="rounded-xl border p-4">
-                <div className="font-semibold text-sm">Underfit</div>
-                <div className="mt-1 text-sm text-muted-foreground">Too simple to capture the pattern, so both train and test stay weak.</div>
-              </div>
-              <div className="rounded-xl border p-4">
-                <div className="font-semibold text-sm">Good fit</div>
-                <div className="mt-1 text-sm text-muted-foreground">Captures the main trend and keeps the train/test gap small.</div>
-              </div>
-              <div className="rounded-xl border p-4">
-                <div className="font-semibold text-sm">Overfit</div>
-                <div className="mt-1 text-sm text-muted-foreground">Looks great on training data but gets worse on unseen data.</div>
-              </div>
-            </div>
-            <CalloutBox type="warning" title="Notebook continuations">
+            <Suspense fallback={<VizLoading />}>
+              <FitQualityExplorer />
+            </Suspense>
+            <CalloutBox type="key-idea" title="The train/test gap is what matters">
               <p>
-                Regularization and gradient descent still exist in the regression notebook, but they stay outside the core lesson flow here.
+                Training error almost always keeps falling as the model gets more flexible. Test error is what tells the truth — it rises again once the model starts memorizing noise. Picking the degree near the bottom of the test curve is the whole point of model selection.
               </p>
             </CalloutBox>
           </LessonCard>

@@ -76,12 +76,13 @@ export default function NavSearch() {
     <>
       <Button
         variant="outline"
-        className="relative h-9 w-56 justify-start rounded-md text-sm text-muted-foreground"
+        className="relative h-9 w-9 justify-center rounded-md text-sm text-muted-foreground lg:w-56 lg:justify-start"
         onClick={() => setOpen(true)}
+        aria-label="Search topics and sections"
       >
-        <Search className="mr-2 size-4" />
-        <span>Search...</span>
-        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+        <Search className="size-4 lg:mr-2" />
+        <span className="hidden lg:inline">Search...</span>
+        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           {isMac ? '\u2318' : 'Ctrl+'}K
         </kbd>
       </Button>

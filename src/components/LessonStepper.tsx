@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -44,6 +44,7 @@ export default function LessonStepper({
   renderCard,
   enforceRequiredCompletion = true,
 }: LessonStepperProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(() => loadCurrent(storagePrefix, cards.length));
   const [completedSet, setCompletedSet] = useState(() => loadCompleted(storagePrefix));
   const maxUnlockedIndex = useMemo(() => {
@@ -61,6 +62,12 @@ export default function LessonStepper({
   useEffect(() => {
     localStorage.setItem(`${storagePrefix}-current`, String(currentIndex));
   }, [currentIndex, storagePrefix]);
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      rootRef.current?.scrollIntoView({ block: 'start' });
+    });
+  }, [currentIndex]);
 
   useEffect(() => {
     if (currentIndex > maxUnlockedIndex) {
@@ -130,7 +137,7 @@ export default function LessonStepper({
   const allDone = completedSet.size === cards.length;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)]">
+    <div ref={rootRef} className="flex flex-col min-h-[calc(100vh-8rem)]">
       {/* Celebration for completing all cards */}
       <CelebrationOverlay trigger={allDone} intensity="big" />
 

@@ -15,6 +15,7 @@ const Topic08ProbabilityPage = lazy(() => import('./pages/Topic08ProbabilityPage
 const Topic09HMMPage = lazy(() => import('./pages/Topic09HMMPage.tsx'));
 const Topic10ClassificationPage = lazy(() => import('./pages/Topic10ClassificationPage.tsx'));
 const Topic11RegressionPage = lazy(() => import('./pages/Topic11RegressionPage.tsx'));
+const Topic12ClusteringPage = lazy(() => import('./pages/Topic12ClusteringPage.tsx'));
 const MlSetupPage = lazy(() => import('./pages/MlSetupPage.tsx'));
 
 function normalizeLegacyHashUrl() {
@@ -150,6 +151,14 @@ const router = createHashRouter([
         element: (
           <Suspense fallback={null}>
             <Topic11RegressionPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'topic-12',
+        element: (
+          <Suspense fallback={null}>
+            <Topic12ClusteringPage />
           </Suspense>
         ),
       },

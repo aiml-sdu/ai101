@@ -168,9 +168,15 @@ export const NAV_TOPICS: NavTopic[] = [
   {
     id: 'topic-12',
     number: 12,
-    title: 'Clustering (K-Means)',
-    locked: true,
-    sections: [],
+    title: 'Clustering',
+    locked: false,
+    sections: [
+      { id: 'seeing', number: '12.1', title: 'Seeing Clusters' },
+      { id: 'kmeans', number: '12.2', title: 'K-Means' },
+      { id: 'hierarchical', number: '12.3', title: 'Hierarchical Clustering' },
+      { id: 'dbscan', number: '12.4', title: 'DBSCAN' },
+      { id: 'validity', number: '12.5', title: 'Validating Clusters' },
+    ],
   },
   {
     id: 'ml-setup',

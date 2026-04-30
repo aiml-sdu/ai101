@@ -21,7 +21,7 @@ const DESCRIPTIONS: Record<string, string> = {
   'topic-09': 'Temporal models and sequence prediction',
   'topic-10': 'Introduction to machine learning plus student-success classification with trees, forests, and confusion matrices',
   'topic-11': 'Continuous prediction with regression models',
-  'topic-12': 'Distance-based classification with K-nearest neighbors',
+  'topic-12': 'Interactive clustering with K-means, dendrograms, DBSCAN, and cluster validity',
 };
 
 const NODE_SIZE = 64;

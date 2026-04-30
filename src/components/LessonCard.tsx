@@ -10,11 +10,12 @@ interface LessonCardProps {
 export default function LessonCard({ title, sectionLabel, children }: LessonCardProps) {
   return (
     <motion.div
+      data-lesson-card
       initial={{ opacity: 0, x: 40 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-4 scroll-mt-20"
     >
       {sectionLabel && (
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

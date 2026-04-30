@@ -40,16 +40,18 @@ export function useQuizState(
   }, []);
 
   const submit = useCallback((qi: number) => {
+    const state = states[qi];
+    if (!state || state.selected === null || state.submitted) return;
+
+    const selected = state.selected;
+    localStorage.setItem(`quiz-${questions[qi].id}`, String(selected));
     setStates((prev) => {
       const next = [...prev];
-      if (next[qi].selected !== null) {
-        next[qi] = { ...next[qi], submitted: true };
-        localStorage.setItem(`quiz-${questions[qi].id}`, String(next[qi].selected));
-        onResult?.(next[qi].selected === questions[qi].correctIndex);
-      }
+      next[qi] = { ...next[qi], submitted: true };
       return next;
     });
-  }, [questions, onResult]);
+    onResult?.(selected === questions[qi].correctIndex);
+  }, [questions, onResult, states]);
 
   return { states, select, submit };
 }

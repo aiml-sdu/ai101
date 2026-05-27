@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, Eye } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { M, BlockMath } from '@/components/Math';
+import { useLabProgress } from '@/hooks/useLabProgress';
 
 // ── HMM parameters identical to Lab9Ex1 / the handout ──────────────
 const A_INIT = { HOT: 0.8, COLD: 0.2 };
@@ -199,10 +200,18 @@ const STEPS: Step[] = [
 
 // ── UI ───────────────────────────────────────────────────────────────
 
-function NumericStepView({ step, onComplete }: { step: NumericStep; onComplete: () => void }) {
-  const [input, setInput] = useState('');
+function NumericStepView({
+  step,
+  onComplete,
+  isComplete,
+}: {
+  step: NumericStep;
+  onComplete: () => void;
+  isComplete: boolean;
+}) {
+  const [input, setInput] = useState(isComplete ? step.expected.toFixed(6) : '');
   const [checked, setChecked] = useState(false);
-  const [correct, setCorrect] = useState(false);
+  const [correct, setCorrect] = useState(isComplete);
   const [revealed, setRevealed] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
@@ -276,10 +285,18 @@ function NumericStepView({ step, onComplete }: { step: NumericStep; onComplete: 
   );
 }
 
-function ChoiceStepView({ step, onComplete }: { step: ChoiceStep; onComplete: () => void }) {
-  const [choice, setChoice] = useState<number | null>(null);
+function ChoiceStepView({
+  step,
+  onComplete,
+  isComplete,
+}: {
+  step: ChoiceStep;
+  onComplete: () => void;
+  isComplete: boolean;
+}) {
+  const [choice, setChoice] = useState<number | null>(isComplete ? step.correctIdx : null);
   const [checked, setChecked] = useState(false);
-  const [correct, setCorrect] = useState(false);
+  const [correct, setCorrect] = useState(isComplete);
   const [revealed, setRevealed] = useState(false);
 
   const handleCheck = useCallback(() => {
@@ -347,22 +364,23 @@ function ChoiceStepView({ step, onComplete }: { step: ChoiceStep; onComplete: ()
 }
 
 export default function Lab9Ex2ViterbiDecoder() {
-  const [completed, setCompleted] = useState<boolean[]>(new Array(STEPS.length).fill(false));
-  const [active, setActive] = useState(0);
-
-  const markComplete = useCallback((idx: number) => {
-    setCompleted((prev) => {
-      const next = [...prev];
-      next[idx] = true;
-      return next;
-    });
-    if (idx < STEPS.length - 1) {
-      setTimeout(() => setActive(idx + 1), 500);
+  const { isStepComplete, markStepComplete } = useLabProgress('lab9-ex2', STEPS.length);
+  const [active, setActive] = useState(() => {
+    for (let i = 0; i < STEPS.length; i++) {
+      if (!isStepComplete(i + 1)) return i;
     }
-  }, []);
+    return STEPS.length - 1;
+  });
 
+  const markComplete = useCallback(
+    (idx: number) => markStepComplete(idx + 1),
+    [markStepComplete],
+  );
+
+  const completed = STEPS.map((_, i) => isStepComplete(i + 1));
   const allDone = completed.every(Boolean);
   const step = STEPS[active];
+  const hasNext = active < STEPS.length - 1;
 
   return (
     <div>
@@ -413,12 +431,35 @@ export default function Lab9Ex2ViterbiDecoder() {
           transition={{ duration: 0.25 }}
         >
           {step.kind === 'numeric' ? (
-            <NumericStepView key={active} step={step} onComplete={() => markComplete(active)} />
+            <NumericStepView
+              key={active}
+              step={step}
+              onComplete={() => markComplete(active)}
+              isComplete={completed[active]}
+            />
           ) : (
-            <ChoiceStepView key={active} step={step} onComplete={() => markComplete(active)} />
+            <ChoiceStepView
+              key={active}
+              step={step}
+              onComplete={() => markComplete(active)}
+              isComplete={completed[active]}
+            />
           )}
         </motion.div>
       </AnimatePresence>
+
+      {completed[active] && hasNext && (
+        <div className="mt-4 flex justify-end">
+          <Button
+            size="sm"
+            onClick={() => setActive(active + 1)}
+            className="h-8 text-xs"
+          >
+            Continue to {STEPS[active + 1].title}
+            <ArrowRight className="ml-1.5 size-3.5" />
+          </Button>
+        </div>
+      )}
 
       {allDone && (
         <motion.div

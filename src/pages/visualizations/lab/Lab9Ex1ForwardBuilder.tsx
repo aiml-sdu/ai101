@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, Eye } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { M, BlockMath } from '@/components/Math';
+import { useLabProgress } from '@/hooks/useLabProgress';
 
 // ── HMM parameters from /labs/Lab 9/handout/hidden_markov_models.py ──
 // states: [initial, HOT, COLD, final]
@@ -120,13 +121,17 @@ const STEPS: Step[] = [
 function StepView({
   step,
   onComplete,
+  isComplete,
 }: {
   step: Step;
   onComplete: () => void;
+  isComplete: boolean;
 }) {
-  const [input, setInput] = useState('');
+  // When this step was already finished previously, render the completed view
+  // immediately so the green explanation stays visible on revisit.
+  const [input, setInput] = useState(isComplete ? step.expected.toFixed(6) : '');
   const [checked, setChecked] = useState(false);
-  const [correct, setCorrect] = useState(false);
+  const [correct, setCorrect] = useState(isComplete);
   const [revealed, setRevealed] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
@@ -209,22 +214,23 @@ function StepView({
 }
 
 export default function Lab9Ex1ForwardBuilder() {
-  const [completed, setCompleted] = useState<boolean[]>(new Array(STEPS.length).fill(false));
-  const [active, setActive] = useState(0);
-
-  const markComplete = useCallback((idx: number) => {
-    setCompleted((prev) => {
-      const next = [...prev];
-      next[idx] = true;
-      return next;
-    });
-    if (idx < STEPS.length - 1) {
-      setTimeout(() => setActive(idx + 1), 500);
+  const { isStepComplete, markStepComplete } = useLabProgress('lab9-ex1', STEPS.length);
+  const [active, setActive] = useState(() => {
+    for (let i = 0; i < STEPS.length; i++) {
+      if (!isStepComplete(i + 1)) return i;
     }
-  }, []);
+    return STEPS.length - 1;
+  });
 
+  const markComplete = useCallback(
+    (idx: number) => markStepComplete(idx + 1),
+    [markStepComplete],
+  );
+
+  const completed = STEPS.map((_, i) => isStepComplete(i + 1));
   const allDone = completed.every(Boolean);
   const step = STEPS[active];
+  const hasNext = active < STEPS.length - 1;
 
   return (
     <div>
@@ -282,9 +288,27 @@ export default function Lab9Ex1ForwardBuilder() {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.25 }}
         >
-          <StepView key={active} step={step} onComplete={() => markComplete(active)} />
+          <StepView
+            key={active}
+            step={step}
+            onComplete={() => markComplete(active)}
+            isComplete={completed[active]}
+          />
         </motion.div>
       </AnimatePresence>
+
+      {completed[active] && hasNext && (
+        <div className="mt-4 flex justify-end">
+          <Button
+            size="sm"
+            onClick={() => setActive(active + 1)}
+            className="h-8 text-xs"
+          >
+            Continue to {STEPS[active + 1].title}
+            <ArrowRight className="ml-1.5 size-3.5" />
+          </Button>
+        </div>
+      )}
 
       {allDone && (
         <motion.div

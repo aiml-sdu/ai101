@@ -1,12 +1,13 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useLabProgress } from '@/hooks/useLabProgress';
 
 export interface StepDef {
   id: number;
   title: string;
-  content: (onComplete: () => void) => ReactNode;
+  content: (onComplete: () => void, isComplete: boolean) => ReactNode;
 }
 
 interface StepChallengeProps {
@@ -33,12 +34,19 @@ export default function StepChallenge({ exerciseId, steps, onAllComplete }: Step
 
   const handleComplete = (stepId: number) => {
     markStepComplete(stepId);
-    // Auto-advance to next step
-    const nextIdx = steps.findIndex((s) => s.id > stepId && !isStepComplete(s.id));
-    if (nextIdx !== -1) {
-      setTimeout(() => setActiveStep(nextIdx), 400);
-    }
+    // No auto-advance — keep the explanation visible until the user clicks Continue.
   };
+
+  // Compute the next step to navigate to once the current step is complete.
+  // Prefer the next incomplete step (skipping ones already done); fall back to the
+  // immediate next step so a user redoing earlier work can still move forward.
+  const nextActiveStep = (() => {
+    const nextIncomplete = steps.findIndex((s, i) => i > activeStep && !isStepComplete(s.id));
+    if (nextIncomplete !== -1) return nextIncomplete;
+    if (activeStep < steps.length - 1) return activeStep + 1;
+    return -1;
+  })();
+  const currentStepDone = isStepComplete(steps[activeStep].id);
 
   return (
     <div>
@@ -90,7 +98,23 @@ export default function StepChallenge({ exerciseId, steps, onAllComplete }: Step
               Completed. You can redo this step if you want.
             </div>
           )}
-          {steps[activeStep].content(() => handleComplete(steps[activeStep].id))}
+          {steps[activeStep].content(
+            () => handleComplete(steps[activeStep].id),
+            currentStepDone,
+          )}
+
+          {currentStepDone && nextActiveStep !== -1 && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                size="sm"
+                onClick={() => setActiveStep(nextActiveStep)}
+                className="h-8 text-xs"
+              >
+                Continue to Step {steps[nextActiveStep].id}
+                <ArrowRight className="ml-1.5 size-3.5" />
+              </Button>
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

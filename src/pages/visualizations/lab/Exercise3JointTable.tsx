@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ChevronRight, Eye } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { M, BlockMath } from '@/components/Math';
+import { useLabProgress } from '@/hooks/useLabProgress';
 
 // ---------- Joint Distribution Data ----------
 
@@ -233,17 +234,22 @@ function JointTable({
 function QuestionStep({
   question,
   onComplete,
+  isComplete,
 }: {
   question: Question;
   onComplete: () => void;
+  isComplete: boolean;
 }) {
-  const [input, setInput] = useState('');
-  const [mcChoice, setMcChoice] = useState<string | null>(null);
-  const [checked, setChecked] = useState(false);
-  const [correct, setCorrect] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
-
   const isQ8 = question.id === 8;
+  const [input, setInput] = useState(
+    isComplete && !isQ8 ? question.answer.toFixed(4) : '',
+  );
+  const [mcChoice, setMcChoice] = useState<string | null>(
+    isComplete && isQ8 ? 'yes' : null,
+  );
+  const [checked, setChecked] = useState(false);
+  const [correct, setCorrect] = useState(isComplete);
+  const [showAnswer, setShowAnswer] = useState(false);
 
   const handleCheck = useCallback(() => {
     if (isQ8) {
@@ -374,23 +380,23 @@ function QuestionStep({
 // ---------- Main Component ----------
 
 export default function Exercise3JointTable() {
-  const [completed, setCompleted] = useState<boolean[]>(new Array(8).fill(false));
-  const [active, setActive] = useState(0);
-
-  const markComplete = useCallback((idx: number) => {
-    setCompleted((prev) => {
-      const next = [...prev];
-      next[idx] = true;
-      return next;
-    });
-    // Auto-advance after short delay
-    if (idx < 7) {
-      setTimeout(() => setActive(idx + 1), 500);
+  const { isStepComplete, markStepComplete } = useLabProgress('lab7-ex3', QUESTIONS.length);
+  const [active, setActive] = useState(() => {
+    for (let i = 0; i < QUESTIONS.length; i++) {
+      if (!isStepComplete(i + 1)) return i;
     }
-  }, []);
+    return QUESTIONS.length - 1;
+  });
 
+  const markComplete = useCallback(
+    (idx: number) => markStepComplete(idx + 1),
+    [markStepComplete],
+  );
+
+  const completed = QUESTIONS.map((_, i) => isStepComplete(i + 1));
   const allDone = completed.every(Boolean);
   const q = QUESTIONS[active];
+  const hasNext = active < QUESTIONS.length - 1;
 
   return (
     <div>
@@ -437,9 +443,23 @@ export default function Exercise3JointTable() {
             key={active}
             question={q}
             onComplete={() => markComplete(active)}
+            isComplete={completed[active]}
           />
         </motion.div>
       </AnimatePresence>
+
+      {completed[active] && hasNext && (
+        <div className="mt-4 flex justify-end">
+          <Button
+            size="sm"
+            onClick={() => setActive(active + 1)}
+            className="h-8 text-xs"
+          >
+            Continue to Q{QUESTIONS[active + 1].id}
+            <ArrowRight className="ml-1.5 size-3.5" />
+          </Button>
+        </div>
+      )}
 
       {allDone && (
         <motion.div

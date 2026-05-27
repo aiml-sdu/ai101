@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLabProgress } from '@/hooks/useLabProgress';
 import { nQueensFitness } from '@/lib/local-search';
@@ -60,7 +61,6 @@ export default function Exercise2CrossoverMutation() {
     if (correct) {
       setFeedback({ type: 'correct', msg: 'Correct! Child 1 = first 4 from P1 + last 4 from P2.' });
       markStepComplete(1);
-      setTimeout(() => { setStep(2); setFeedback(null); }, 1500);
     } else {
       setFeedback({ type: 'wrong', msg: 'Not quite. Take genes 0-3 from Parent 1 and genes 4-7 from Parent 2.' });
       setTimeout(() => setFeedback(null), 2000);
@@ -72,7 +72,6 @@ export default function Exercise2CrossoverMutation() {
     if (correct) {
       setFeedback({ type: 'correct', msg: 'Correct! Child 2 = first 4 from P2 + last 4 from P1.' });
       markStepComplete(2);
-      setTimeout(() => { setStep(3); setFeedback(null); }, 1500);
     } else {
       setFeedback({ type: 'wrong', msg: 'Not quite. Take genes 0-3 from Parent 2 and genes 4-7 from Parent 1.' });
       setTimeout(() => setFeedback(null), 2000);
@@ -84,7 +83,6 @@ export default function Exercise2CrossoverMutation() {
     if (pos === MUTATION_POS) {
       setFeedback({ type: 'correct', msg: `Correct! Position ${MUTATION_POS} changed from 1 to ${MUTATION_VAL}.` });
       markStepComplete(3);
-      setTimeout(() => { setStep(4); setFeedback(null); }, 1500);
     } else {
       setFeedback({ type: 'wrong', msg: 'Look at which position differs between the two chromosomes.' });
       setTimeout(() => { setFeedback(null); setMutClickedPos(null); }, 1500);
@@ -96,12 +94,16 @@ export default function Exercise2CrossoverMutation() {
     if (val === MUTATED_FITNESS) {
       setFeedback({ type: 'correct', msg: `Correct! Fitness = ${MUTATED_FITNESS} (${28 - MUTATED_FITNESS} attacking pairs).` });
       markStepComplete(4);
-      setTimeout(() => { setStep(5); setFeedback(null); }, 1500);
     } else {
       setFeedback({ type: 'wrong', msg: 'Count the attacking pairs (same column or diagonal) and subtract from 28.' });
       setTimeout(() => setFeedback(null), 2000);
     }
   }, [markStepComplete]);
+
+  const handleContinue = useCallback(() => {
+    setStep((s) => s + 1);
+    setFeedback(null);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -214,12 +216,22 @@ export default function Exercise2CrossoverMutation() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`rounded-md px-3 py-2 text-sm font-medium ${
+          className={`rounded-md px-3 py-2 text-sm font-medium flex items-center justify-between gap-3 ${
             feedback.type === 'correct' ? 'bg-green-500/10 text-green-600 dark:text-green-400'
               : 'bg-red-500/10 text-red-600 dark:text-red-400'
           }`}
         >
-          {feedback.msg}
+          <span>{feedback.msg}</span>
+          {feedback.type === 'correct' && step <= 4 && (
+            <Button
+              size="sm"
+              onClick={handleContinue}
+              className="h-7 text-xs shrink-0"
+            >
+              Continue
+              <ArrowRight className="ml-1 size-3" />
+            </Button>
+          )}
         </motion.div>
       )}
     </div>

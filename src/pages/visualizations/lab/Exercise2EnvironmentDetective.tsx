@@ -126,12 +126,19 @@ type Choice = 'A' | 'B' | null;
 interface ClassifyStepProps {
   scenario: Scenario;
   onComplete: () => void;
+  isComplete: boolean;
 }
 
-function ClassifyStep({ scenario, onComplete }: ClassifyStepProps) {
-  const [answers, setAnswers] = useState<Choice[]>(Array(6).fill(null));
-  const [results, setResults] = useState<(boolean | null)[]>(Array(6).fill(null));
-  const [done, setDone] = useState(false);
+function ClassifyStep({ scenario, onComplete, isComplete }: ClassifyStepProps) {
+  // When this step has already been completed in a prior session, render the
+  // "all correct" state directly so explanations remain visible on revisit.
+  const [answers, setAnswers] = useState<Choice[]>(() =>
+    isComplete ? (scenario.correct as Choice[]) : Array(6).fill(null),
+  );
+  const [results, setResults] = useState<(boolean | null)[]>(() =>
+    isComplete ? Array(6).fill(true) : Array(6).fill(null),
+  );
+  const [done, setDone] = useState(isComplete);
   const [wrongCount, setWrongCount] = useState(0);
 
   const handleSelect = useCallback(
@@ -286,17 +293,23 @@ export default function Exercise2EnvironmentDetective() {
     {
       id: 1,
       title: SCENARIOS[0].title,
-      content: (onComplete) => <ClassifyStep scenario={SCENARIOS[0]} onComplete={onComplete} />,
+      content: (onComplete, isComplete) => (
+        <ClassifyStep scenario={SCENARIOS[0]} onComplete={onComplete} isComplete={isComplete} />
+      ),
     },
     {
       id: 2,
       title: SCENARIOS[1].title,
-      content: (onComplete) => <ClassifyStep scenario={SCENARIOS[1]} onComplete={onComplete} />,
+      content: (onComplete, isComplete) => (
+        <ClassifyStep scenario={SCENARIOS[1]} onComplete={onComplete} isComplete={isComplete} />
+      ),
     },
     {
       id: 3,
       title: SCENARIOS[2].title,
-      content: (onComplete) => <ClassifyStep scenario={SCENARIOS[2]} onComplete={onComplete} />,
+      content: (onComplete, isComplete) => (
+        <ClassifyStep scenario={SCENARIOS[2]} onComplete={onComplete} isComplete={isComplete} />
+      ),
     },
   ];
 

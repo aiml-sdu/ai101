@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createHashRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 import { Lock } from 'lucide-react';
 import AppShell from './layouts/AppShell.tsx';
 
@@ -53,6 +54,13 @@ function NotReleasedPage() {
   );
 }
 
+function LockedTopic({ children }: { children: ReactNode }) {
+  const { isSignedIn } = useAuth();
+  const reviewMode = isSignedIn || !!import.meta.env.VITE_REVIEW_MODE;
+
+  return reviewMode ? children : <NotReleasedPage />;
+}
+
 const router = createHashRouter([
   {
     element: <AppShell />,
@@ -93,73 +101,91 @@ const router = createHashRouter([
       {
         path: 'topic-04',
         element: (
-          <Suspense fallback={null}>
-            <Topic04InformedPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic04InformedPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-05',
         element: (
-          <Suspense fallback={null}>
-            <Topic05LocalPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic05LocalPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-06',
         element: (
-          <Suspense fallback={null}>
-            <Topic06AdversarialPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic06AdversarialPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-07',
         element: (
-          <Suspense fallback={null}>
-            <Topic07ConstraintPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic07ConstraintPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-08',
         element: (
-          <Suspense fallback={null}>
-            <Topic08ProbabilityPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic08ProbabilityPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-09',
         element: (
-          <Suspense fallback={null}>
-            <Topic09HMMPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic09HMMPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-10',
         element: (
-          <Suspense fallback={null}>
-            <Topic10ClassificationPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic10ClassificationPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-11',
         element: (
-          <Suspense fallback={null}>
-            <Topic11RegressionPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic11RegressionPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {
         path: 'topic-12',
         element: (
-          <Suspense fallback={null}>
-            <Topic12ClusteringPage />
-          </Suspense>
+          <LockedTopic>
+            <Suspense fallback={null}>
+              <Topic12ClusteringPage />
+            </Suspense>
+          </LockedTopic>
         ),
       },
       {

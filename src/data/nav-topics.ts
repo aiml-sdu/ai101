@@ -64,6 +64,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-04',
     number: 4,
     title: 'Informed Search',
+    locked: true,
     sections: [
       { id: 'heuristics', number: '4.1', title: 'Heuristics' },
       { id: 'greedy', number: '4.2', title: 'Greedy Best-First' },
@@ -79,7 +80,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-05',
     number: 5,
     title: 'Local Search',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'motivation', number: '5.1', title: 'Beyond Search Trees' },
       { id: 'hill-climb', number: '5.2', title: 'Hill Climbing' },
@@ -93,7 +94,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-06',
     number: 6,
     title: 'Adversarial Search',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'games', number: '6.1', title: 'Games & Competition' },
       { id: 'minimax', number: '6.2', title: 'Game Trees & Minimax' },
@@ -107,7 +108,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-07',
     number: 7,
     title: 'Constraint Satisfaction Problems',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'intro', number: '7.1', title: 'A New Kind of Problem' },
       { id: 'map-coloring', number: '7.2', title: 'Map Coloring' },
@@ -121,7 +122,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-08',
     number: 8,
     title: 'Probability & Bayesian Networks',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'uncertainty', number: '8.1', title: 'Uncertainty in AI' },
       { id: 'bayes', number: '8.2', title: "Bayes' Rule" },
@@ -135,7 +136,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-09',
     number: 9,
     title: 'Hidden Markov Models',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'markov', number: '9.1', title: 'Markov Chains' },
       { id: 'hmm', number: '9.2', title: 'Hidden Markov Models' },
@@ -149,7 +150,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-10',
     number: 10,
     title: 'Introduction to ML and Classification',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'why', number: '10.1', title: 'Introduction to ML' },
       { id: 'classification', number: '10.2', title: 'Classification' },
@@ -159,6 +160,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-11',
     number: 11,
     title: 'Regression',
+    locked: true,
     sections: [
       { id: 'basics', number: '11.1', title: 'Regression Basics' },
       { id: 'multi', number: '11.2', title: 'Multiple Regression' },
@@ -169,7 +171,7 @@ export const NAV_TOPICS: NavTopic[] = [
     id: 'topic-12',
     number: 12,
     title: 'Clustering',
-    locked: false,
+    locked: true,
     sections: [
       { id: 'seeing', number: '12.1', title: 'Seeing Clusters' },
       { id: 'kmeans', number: '12.2', title: 'K-Means' },

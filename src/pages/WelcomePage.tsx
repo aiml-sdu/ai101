@@ -102,14 +102,6 @@ export default function WelcomePage() {
           {plannedTopicCount} topics planned &middot; {unlockedTopicCount} unlocked now. Built with Claude Opus 4.6.
           <br />
           Content reviewed and verified by TAs and Professor.
-          <br />
-          Bugs or feedback? Email{' '}
-          <a
-            href="mailto:phkon23@student.sdu.dk"
-            className="underline underline-offset-2 hover:text-foreground transition-colors"
-          >
-            phkon23@student.sdu.dk
-          </a>
         </p>
       </section>
 
